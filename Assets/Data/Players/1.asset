@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9339c23d374f44a2a570768b6f59ddec, type: 3}
+  m_Name: 1
+  m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerData
+  playerID: 0
+  playerName: Player
+  playerStats:
+    maxHP:
+      baseValue: 10
+    hpRegen:
+      baseValue: 0
+    lifeSteal:
+      baseValue: 0
+    armor:
+      baseValue: 0
+    dodge:
+      baseValue: 0
+    damagePercent:
+      baseValue: 0
+    meleeDamage:
+      baseValue: 0
+    rangedDamage:
+      baseValue: 0
+    elementalDamage:
+      baseValue: 0
+    attackSpeed:
+      baseValue: 0
+    critChance:
+      baseValue: 3
+    range:
+      baseValue: 0
+    speed:
+      baseValue: 0
+    luck:
+      baseValue: 0
+    harvesting:
+      baseValue: 0
+    maxWeapons:
+      baseValue: 6
+  playerPrefab: {fileID: 8719565624045311067, guid: 5f153fb2ca7b1454692878f94df56a76, type: 3}
