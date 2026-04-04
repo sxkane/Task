@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Weapons;
 
 namespace Player
 {
@@ -9,8 +11,9 @@ namespace Player
     {
         public int playerID;
         public string playerName;
-        public Image playerIcon;
+        public Sprite playerIcon;
         public PlayerStats playerStats;
         public GameObject playerPrefab;
+        public List<WeaponData> initialWeapons;
     }
 }

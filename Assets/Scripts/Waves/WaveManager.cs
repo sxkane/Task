@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Enemy;
 using Events;
+using Events.WaveEvents;
 using Player;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -10,6 +11,7 @@ namespace Waves
 {
     public class WaveManager : MonoBehaviour
     {
+        [Header("Wave Settings")]
         [SerializeField] private List<WaveConfig> waves = new();
         [SerializeField] private float radius;
         
@@ -20,7 +22,7 @@ namespace Waves
         private float _timer;
         private int _lastSecond = -1;
         
-        public int CurrentWave { get; set; }
+        public int CurrentWave { get; private set; }
         private bool _isActive;
         
         private readonly List<int> _randomEnemyIndex = new();
@@ -94,7 +96,7 @@ namespace Waves
             return wave.enemies[index].enemyPrefab;
         }
 
-        void BuildRandomPool(int waveIndex)
+        private void BuildRandomPool(int waveIndex)
         {
             _randomEnemyIndex.Clear();
 
@@ -117,16 +119,27 @@ namespace Waves
             CurrentWave = -1;
         }
 
-        public void Activate()
+        public void StartNextWave()
         {
             CurrentWave++;
-            
             _timer = 0;
             _spawnTimer = 0;
+            _lastSecond = -1;
             BuildRandomPool(CurrentWave);
-            
             _isActive = true;
         }
-        public void Deactivate() => _isActive = false;
+
+        public void ResumeWave()
+        {
+            if (CurrentWave < 0 || CurrentWave >= waves.Count)
+                return;
+
+            _isActive = true;
+        }
+
+        public void Deactivate()
+        {
+            _isActive = false;
+        }
     }
 }

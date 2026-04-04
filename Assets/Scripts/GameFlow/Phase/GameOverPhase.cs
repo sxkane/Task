@@ -1,5 +1,4 @@
-﻿using Core;
-using UnityEngine.SceneManagement;
+using Core;
 
 namespace GameFlow.Phase
 {
@@ -7,13 +6,13 @@ namespace GameFlow.Phase
     {
         public GameOverPhase(GameController game) : base(game)
         {
-            
         }
 
         public override void Enter()
         {
             base.Enter();
             
+            Game.DisablePlayerInput();
             Game.Pause();
         }
 
@@ -21,7 +20,8 @@ namespace GameFlow.Phase
         {
             base.Exit();
             
-            Game.Pause();
+            Game.EnablePlayerInput();
+            Game.Resume();
         }
     }
 }

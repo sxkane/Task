@@ -1,4 +1,4 @@
-﻿namespace Events
+﻿namespace Events.WaveEvents
 {
     public struct WaveChangeSecondEvent : IEvent
     {

@@ -10,41 +10,44 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9339c23d374f44a2a570768b6f59ddec, type: 3}
-  m_Name: 1
+  m_Name: Player1
   m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerData
   playerID: 0
-  playerName: Player
+  playerName: Player1
+  playerIcon: {fileID: 6257046027232108077, guid: 19d5e7c24f5f4e24b8cd30a52bad94e0, type: 3}
   playerStats:
-    maxHP:
+    MaxHpStat:
       baseValue: 10
-    hpRegen:
+    HpRegenStat:
       baseValue: 0
-    lifeSteal:
+    LifeStealStat:
       baseValue: 0
-    armor:
+    ArmorStat:
       baseValue: 0
-    dodge:
+    DodgeStat:
       baseValue: 0
-    damagePercent:
+    DamagePercentStat:
       baseValue: 0
-    meleeDamage:
+    MeleeDamageStat:
       baseValue: 0
-    rangedDamage:
+    RangedDamageStat:
       baseValue: 0
-    elementalDamage:
+    ElementalDamageStat:
       baseValue: 0
-    attackSpeed:
+    AttackSpeedStat:
       baseValue: 0
-    critChance:
+    CritChanceStat:
       baseValue: 3
-    range:
+    RangeStat:
       baseValue: 0
-    speed:
+    SpeedStat:
       baseValue: 0
-    luck:
+    LuckStat:
       baseValue: 0
-    harvesting:
+    HarvestingStat:
       baseValue: 0
-    maxWeapons:
+    MaxWeaponsStat:
       baseValue: 6
   playerPrefab: {fileID: 8719565624045311067, guid: 5f153fb2ca7b1454692878f94df56a76, type: 3}
+  initialWeapons:
+  - {fileID: 11400000, guid: cf681188ae9fd6a408e548215c248a9b, type: 2}

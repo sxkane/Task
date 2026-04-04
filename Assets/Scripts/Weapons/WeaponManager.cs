@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Enemy;
+using Events;
 using Player;
+using Rewards.Shops;
 using UnityEngine;
 using Waves;
 
@@ -17,8 +19,6 @@ namespace Weapons
         private EnemyManager _enemyManager;
 
         private int _maxWeaponCount;
-
-        private int _currentCount;
         private readonly List<Weapon> _weapons = new();
 
         private void Awake()
@@ -59,13 +59,10 @@ namespace Weapons
         private void SpawnWeapon(WeaponData data, Rarity rarity)
         {
             var obj = Instantiate(data.weaponPrefab, _weaponParent);
-
             var weapon = obj.GetComponent<Weapon>();
-
             var stats = data.GetStats(rarity);
             
             weapon.Init(_player, data.weaponID, stats, _enemyManager);
-
             _weapons.Add(weapon);
 
             ArrangeWeapons();
@@ -74,7 +71,6 @@ namespace Weapons
         public void UpgradeWeapon(Weapon weapon, WeaponData data)
         {
             weapon.Upgrade(data);
-
             ArrangeWeapons();
         }
 
@@ -94,28 +90,27 @@ namespace Weapons
             }
         }
 
-        public void Initialize(PlayerManager playerManager, WaveManager waveManager)
+        public void Initialize(PlayerManager playerManager, WaveManager waveManager, List<WeaponData> initialWeapons)
         {
             _player = playerManager.Player;
             _enemyManager = waveManager.EnemyManager;
             _maxWeaponCount = _player.Stats.MaxWeapons;
             _weaponParent = _player.transform;
+            
+            foreach (var w in initialWeapons)
+                TryAddWeapon(w, Rarity.Common);
         }
 
         public void Activate()
         {
             foreach (var w in _weapons)
-            {
                 w.Activate();
-            }
         }
 
         public void Deactivate()
         {
             foreach (var w in _weapons)
-            {
                 w.Deactivate();
-            }
         }
     }
 }

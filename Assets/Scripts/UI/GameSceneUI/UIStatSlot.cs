@@ -1,4 +1,4 @@
-﻿using Player;
+using Player;
 using Stats;
 using TMPro;
 using UnityEngine;
@@ -7,15 +7,15 @@ using UnityEngine.UI;
 
 namespace UI.GameSceneUI
 {
-    public class UIStatSlot: MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public class UIStatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
+        [Header("Display")]
         [SerializeField] private string attributeName;
         [SerializeField] private StatType statType;
-        [SerializeField] private Image iconImage;
         [SerializeField] private TextMeshProUGUI attributeNameText;
         [SerializeField] private TextMeshProUGUI attributeValueText;
+        
         private string _statIntroductionText;
-
         private PlayerStats _stat;
         private GameUIManager _gameUIManager;
 
@@ -45,7 +45,7 @@ namespace UI.GameSceneUI
             if (_stat != null)
             {
                 var stat = _stat.GetStat(statType);
-                stat.OnValueChanged += Refresh;
+                stat.OnValueChanged -= Refresh;
             }
         }
         
@@ -56,12 +56,12 @@ namespace UI.GameSceneUI
         
         public void OnPointerEnter(PointerEventData eventData)
         {
-            _gameUIManager.statTooltip.Show(_statIntroductionText);
+            GameUIManager.Instance.tooltip.Show(_statIntroductionText, transform as RectTransform);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            _gameUIManager.statTooltip.Hide();   
+            GameUIManager.Instance.tooltip.Hide();   
         }
     }
 }

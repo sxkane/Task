@@ -9,11 +9,15 @@ namespace Player
     
         private InputAction _moveAction;
         private bool _isInitialized;
+        private bool _isInputEnabled;
         
         private void Update()
         {
-            if (!_isInitialized)
+            if (!_isInitialized || !_isInputEnabled)
+            {
+                MoveInput = Vector2.zero;
                 return;
+            }
             
             MoveInput = _moveAction.ReadValue<Vector2>();
         }
@@ -22,6 +26,21 @@ namespace Player
         {
             _moveAction = InputSystem.actions.FindAction("Move");
             _isInitialized = true;
+            _isInputEnabled = true;
+        }
+
+        public void EnableInput()
+        {
+            if (!_isInitialized)
+                return;
+
+            _isInputEnabled = true;
+        }
+
+        public void DisableInput()
+        {
+            MoveInput = Vector2.zero;
+            _isInputEnabled = false;
         }
     }
 }

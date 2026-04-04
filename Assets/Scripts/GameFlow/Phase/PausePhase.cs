@@ -10,11 +10,17 @@ namespace GameFlow.Phase
 
         public override void Enter()
         {
+            base.Enter();
+
+            Game.DisablePlayerInput();
             Game.Pause();
         }
 
         public override void Exit()
         {
+            base.Exit();
+
+            Game.EnablePlayerInput();
             Game.Resume();
         }
     }

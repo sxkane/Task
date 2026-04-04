@@ -1,6 +1,5 @@
 using Core;
 using GameFlow;
-using GameFlow.Phase;
 using Player;
 using UnityEngine;
 
@@ -10,15 +9,17 @@ namespace UI.GameSceneUI
     {
         public static GameUIManager Instance;
         
-        public GameObject hud;
-        public GameObject pausePanel;
-        public GameObject rewardPanel;  
-        public GameObject resultPanel;
+        [Header("Pages")]
+        [SerializeField] private GameObject hud;
+        [SerializeField] private GameObject pausePanel;
+        [SerializeField] private GameObject rewardPanel;
+        [SerializeField] private GameObject resultPanel;
+
+        [Header("Shared UI")]
+        [SerializeField] private UIStatSlot[] statSlots;
+        [SerializeField] public StatTooltip tooltip;
         
         public PlayerController Player { get; private set; }
-        
-        [SerializeField] public StatTooltip statTooltip;
-        [SerializeField] public UIStatSlot[] statSlots;
 
         private void Awake()
         {
@@ -38,7 +39,7 @@ namespace UI.GameSceneUI
         
         private void OnDisable()
         {
-            GameController.Instance.OnPhaseChanged -=  OnPhaseChange;   
+            GameController.Instance.OnPhaseChanged -= OnPhaseChange;
         }
 
         public void PlayUI(GameObject ui)
@@ -48,10 +49,8 @@ namespace UI.GameSceneUI
             rewardPanel.SetActive(false);
             resultPanel.SetActive(false);
 
-            if (ui == null)
-                return;
-            
-            ui.SetActive(true);
+            if (ui != null)
+                ui.SetActive(true);
         }
         
         public void Initialize(PlayerManager playerManager)
@@ -59,9 +58,7 @@ namespace UI.GameSceneUI
             Player = playerManager.Player;
             
             foreach (var statSlot in statSlots)
-            {
                 statSlot.Initialize();
-            }
             
             PlayUI(hud);
         }

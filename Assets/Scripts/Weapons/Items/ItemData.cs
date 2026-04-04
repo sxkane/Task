@@ -16,6 +16,7 @@ namespace Weapons.Items
         public string itemName;
         public Rarity rarity;
         public int price;
+        public string description;
 
         public List<ItemModify> modifies;
         

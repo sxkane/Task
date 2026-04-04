@@ -1,11 +1,6 @@
-﻿using Core;
-using Enemy;
+using Core;
 using Player;
 using Rewards;
-using UI;
-using UI.GameSceneUI;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using Waves;
 using Weapons;
 using Weapons.Items;
@@ -25,8 +20,9 @@ namespace GameFlow.Phase
             var selectedPlayer = Game.SelectedPlayer;
             Game.PlayerManager.Initialize(selectedPlayer);
             Game.WaveManager.Initialize(Game.PlayerManager);
-            Game.WeaponManager.Initialize(Game.PlayerManager, Game.WaveManager);
-            Game.RewardManager.Initialize(Game.PlayerManager, Game.WeaponManager, Game.WaveManager);
+            Game.WeaponManager.Initialize(Game.PlayerManager, Game.WaveManager, Game.SelectedWeapons);
+            Game.ItemManager.Initialize(Game.PlayerManager);
+            Game.RewardManager.Initialize(Game.PlayerManager, Game.WeaponManager, Game.ItemManager, Game.WaveManager);
             
             Game.ChangeState(GamePhaseType.Battle);
         }

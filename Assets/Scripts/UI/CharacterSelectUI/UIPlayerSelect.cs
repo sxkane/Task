@@ -1,4 +1,4 @@
-﻿using System;
+using System.Collections.Generic;
 using Core;
 using Data;
 using Player;
@@ -16,13 +16,11 @@ namespace UI.CharacterSelectUI
         [SerializeField] private Transform playerIconParent;
         [SerializeField] private PlayerIconSlot playerSlotPrefab;
         [SerializeField] private PlayerInformationSlot infoSlot;
-
-        public GameDatabase gameDatabase;
+        [SerializeField] private GameDatabase gameDatabase;
         
+        private readonly List<PlayerIconSlot> _slots = new();
         private PlayerData _selectedPlayer;
-
-        public Action<PlayerData> PlayerSelected;
-        public Action StartButtonClicked;
+        private PlayerIconSlot _selectedSlot;
 
         private void Awake()
         {
@@ -41,14 +39,16 @@ namespace UI.CharacterSelectUI
 
             var randomSlot = Instantiate(playerSlotPrefab, playerIconParent);
             randomSlot.Initialize(null, OnPlayerSelected);
+            _slots.Add(randomSlot);
 
             foreach (var player in allPlayers)
             {
                 var slot = Instantiate(playerSlotPrefab, playerIconParent);
                 slot.Initialize(player, OnPlayerSelected);
+                _slots.Add(slot);
             }
 
-            OnPlayerSelected(null);
+            OnPlayerSelected(null, null);
         }
 
         private void OnEnable()
@@ -61,16 +61,22 @@ namespace UI.CharacterSelectUI
             startButton.onClick.RemoveListener(OnClickStart);
         }
 
-        private void OnPlayerSelected(PlayerData data)
+        private void OnPlayerSelected(PlayerIconSlot slot, PlayerData data)
         {
+            _selectedSlot = slot;
+            _selectedPlayer = data;
+
+            foreach (var iconSlot in _slots)
+            {
+                iconSlot.SetSelected(iconSlot == _selectedSlot && _selectedSlot != null);
+            }
+
             if (data == null)
             {
-                _selectedPlayer = null;
                 infoSlot.ShowRandomPlayer();
             }
             else
             {
-                _selectedPlayer = data;
                 infoSlot.ShowPlayer(data.playerName, "");
             }
         }
@@ -78,7 +84,6 @@ namespace UI.CharacterSelectUI
         private void OnClickStart()
         {
             SelectPlayer();
-
             GameRoot.Instance.StartGame(new GameSession { SelectedPlayer = _selectedPlayer });
         }
 

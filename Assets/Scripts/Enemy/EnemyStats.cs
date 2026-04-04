@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Enemy
 {
@@ -14,6 +14,7 @@ namespace Enemy
 
         public float KnockbackResistance { get; private set; }
         public float CoinReward { get; private set; }
+        public float ExpReward { get; private set; }
 
         public bool IsAlive => CurrentHP > 0;
 
@@ -27,6 +28,7 @@ namespace Enemy
             AttackInterval = template.attackInterval;
             KnockbackResistance = template.knockbackResistance;
             CoinReward = template.coinReward;
+            ExpReward = template.expReward;
         }
 
         public void TakeDamage(float amount)

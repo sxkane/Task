@@ -15,13 +15,13 @@ namespace Stats
                 switch (damage.damageType)
                 {
                     case DamageType.Melee:
-                        finalDamage += Mathf.RoundToInt(playerStats.MeleeDamage * (damage.percentage / 100f));
+                        finalDamage += Mathf.RoundToInt(damage.damage + playerStats.MeleeDamage * (damage.percentage / 100f));
                         break;
                     case DamageType.Ranged:
-                        finalDamage += Mathf.RoundToInt(playerStats.RangedDamage * (damage.percentage / 100f));
+                        finalDamage += Mathf.RoundToInt(damage.damage + playerStats.RangedDamage * (damage.percentage / 100f));
                         break;
                     case DamageType.Elemental:
-                        finalDamage += Mathf.RoundToInt(playerStats.ElementalDamage * (damage.percentage / 100f));
+                        finalDamage += Mathf.RoundToInt(damage.damage + playerStats.ElementalDamage * (damage.percentage / 100f));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

@@ -1,6 +1,5 @@
-﻿using Core;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+using Core;
+using Events;
 
 namespace GameFlow.Phase
 {
@@ -13,9 +12,18 @@ namespace GameFlow.Phase
         public override void Enter()
         {
             base.Enter();
+
+            Game.Resume();
+            Game.EnablePlayerInput();
+            Game.GameInputHandler?.EnableInput();
             
             EventScribe();
-            Game.WaveManager.Activate();
+
+            if (Game.StateMachine.PreviousPhase is PausePhase)
+                Game.WaveManager.ResumeWave();
+            else
+                Game.WaveManager.StartNextWave();
+
             Game.WeaponManager.Activate();
         }
 
@@ -31,24 +39,27 @@ namespace GameFlow.Phase
         private void EventScribe()
         {
             Game.WaveManager.OnWaveCompleted += WaveComplete;
+            EventBus.Subscribe<OnPlayerDiedEvent>(OnPlayerDied);
         }
 
         private void EventUnScribe()
         {
             Game.WaveManager.OnWaveCompleted -= WaveComplete;
+            EventBus.Unsubscribe<OnPlayerDiedEvent>(OnPlayerDied);
         }
         
-
         private void WaveComplete(bool isFinalWave)
         {
             if (!isFinalWave)
-            {
                 Game.ChangeState(GamePhaseType.RewardAndShop);
-            }
             else
-            {
                 Game.ChangeState(GamePhaseType.GameOver);
-            }
+        }
+        
+        private void OnPlayerDied(OnPlayerDiedEvent e)
+        {
+            if (Game.PlayerManager?.Player == e.Target)
+                Game.ChangeState(GamePhaseType.GameOver);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+using Events;
+using Events.EnemyEvents;
+using UnityEngine;
 
 namespace Enemy
 {
@@ -17,6 +19,16 @@ namespace Enemy
             Stats.Init(template);
         }
 
+        private void OnEnable()
+        {
+            EventBus.Subscribe<OnEnemyDamageRequestedEvent>(OnDamageRequested);
+        }
+
+        private void OnDisable()
+        {
+            EventBus.Unsubscribe<OnEnemyDamageRequestedEvent>(OnDamageRequested);
+        }
+
         public void Initialize(Transform target, EnemyManager enemyManager)
         {
             Target = target;
@@ -24,21 +36,29 @@ namespace Enemy
             _enemyManager.Register(this);
         }
 
-        public void TakeDamage(float damage)
+        private void OnDamageRequested(OnEnemyDamageRequestedEvent e)
         {
-            Stats.TakeDamage(damage);
+            if (e.Target != this || !Stats.IsAlive)
+                return;
+
+            Stats.TakeDamage(e.Damage);
+            EventBus.Publish(new OnEnemyDamagedEvent(this, Mathf.RoundToInt(e.Damage)));
 
             if (!Stats.IsAlive)
-            {
-                _enemyManager.Unregister(this);
                 Die();
-            }
+        }
+
+        public void TakeDamage(float damage)
+        {
+            EventBus.Publish(new OnEnemyDamageRequestedEvent(this, damage));
         }
 
         private void Die()
         {
             // TODO: 播放死亡特效 / 掉落经验
 
+            _enemyManager?.Unregister(this);
+            EventBus.Publish(new OnEnemyDiedEvent(this));
             Destroy(gameObject);
         }
     }

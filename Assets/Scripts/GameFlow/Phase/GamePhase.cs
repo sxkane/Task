@@ -15,10 +15,6 @@ namespace GameFlow.Phase
         {
         }
 
-        public virtual void Update()
-        {
-        }
-        
         public virtual void Exit()
         {
         }

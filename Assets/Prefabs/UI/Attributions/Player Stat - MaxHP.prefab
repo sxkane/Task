@@ -128,7 +128,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UI.UIStatSlot
   attributeName: "\u6700\u5927\u751F\u547D\u503C"
   statType: 0
-  iconImage: {fileID: 7570898947298102299}
   attributeNameText: {fileID: 5637335512774010271}
   attributeValueText: {fileID: 7370445188628122363}
 --- !u!1 &7006120063393478924

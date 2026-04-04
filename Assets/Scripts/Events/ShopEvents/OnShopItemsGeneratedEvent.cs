@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using Rewards.Shops;
-using Rewards.StatRewards;
 
-namespace Events
+namespace Events.ShopEvents
 {
     public class OnShopItemsGeneratedEvent : IEvent
     {

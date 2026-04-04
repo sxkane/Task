@@ -12,12 +12,14 @@ namespace GameFlow.Phase
         {
             base.Enter();
             
+            Game.DisablePlayerInput();
             Game.Pause();
             Game.RewardManager.Activate();
         }
 
         public override void Exit()
         {
+            Game.EnablePlayerInput();
             Game.RewardManager.Deactivate();
             Game.Resume();
         }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using Events;
+using UnityEngine;
 
 namespace Enemy
 {
@@ -21,10 +22,7 @@ namespace Enemy
 
             if (player == null) return;
 
-            // TODO: 玩家受伤系统
-            Debug.Log("Player hit by melee enemy!");
-
-            // player.Health.TakeDamage(stats.Damage);
+            EventBus.Publish(new OnPlayerDamageRequestedEvent(player, Stats.Damage));
         }
     }
 }

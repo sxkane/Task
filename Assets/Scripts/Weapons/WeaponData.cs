@@ -8,6 +8,7 @@ namespace Weapons
     {
         public int weaponID;
         public string weaponName;
+        public string description;
 
         [Header("Visual")]
         public GameObject weaponPrefab;

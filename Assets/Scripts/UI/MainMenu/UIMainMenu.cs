@@ -1,4 +1,5 @@
 ﻿using Core;
+using UI.FadeScreenUI;
 using UnityEngine;
 using UnityEngine.UI;
 

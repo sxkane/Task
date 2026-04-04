@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using UnityEngine;
 
 namespace Player
 {
@@ -7,12 +8,52 @@ namespace Player
         public int Level { get; private set; }
         public int Coins { get; private set; }
         public int Experience { get; private set; }
-
         public int NeedExperience => GetNeedExp(Level);
+        public int RefreshCost { get; private set; } = 1;
         
         public event Action<int> OnCoinsChanged;
         public event Action<int, int> OnExpChanged; 
         public event Action<int> OnLevelUp;
+        public event Action<int> OnRefreshCostChanged;
+        
+        public void InitializeRun()
+        {
+            Level = 0;
+            Coins = 0;
+            Experience = 0;
+            RefreshCost = 1;
+
+            OnCoinsChanged?.Invoke(Coins);
+            OnExpChanged?.Invoke(Experience, NeedExperience);
+            OnRefreshCostChanged?.Invoke(RefreshCost);
+        }
+
+        public bool CanAfford(int amount)
+        {
+            return amount >= 0 && Coins >= amount;
+        }
+
+        public bool TrySpendCoins(int amount)
+        {
+            if (amount < 0 || Coins < amount)
+                return false;
+
+            Coins -= amount;
+            OnCoinsChanged?.Invoke(Coins);
+            return true;
+        }
+
+        public void ResetRefreshCost()
+        {
+            RefreshCost = 1;
+            OnRefreshCostChanged?.Invoke(RefreshCost);
+        }
+
+        public void IncreaseRefreshCost(int amount = 1)
+        {
+            RefreshCost = Mathf.Max(0, RefreshCost + amount);
+            OnRefreshCostChanged?.Invoke(RefreshCost);
+        }
         
         private int GetNeedExp(int level)
         {
@@ -21,7 +62,8 @@ namespace Player
         
         public void AddCoins(int amount)
         {
-            if (amount <= 0) return;
+            if (amount <= 0)
+                return;
 
             Coins += amount;
             OnCoinsChanged?.Invoke(Coins);
@@ -29,7 +71,8 @@ namespace Player
         
         public void AddExperience(int amount)
         {
-            if (amount <= 0) return;
+            if (amount <= 0)
+                return;
 
             Experience += amount;
 

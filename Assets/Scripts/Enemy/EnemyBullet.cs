@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using Events;
+using UnityEngine;
 
 namespace Enemy
 {
@@ -25,14 +26,12 @@ namespace Enemy
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.GetComponent<Player.PlayerController>() != null)
-            {
-                Debug.Log("Player hit by bullet!");
+            var player = other.GetComponent<Player.PlayerController>();
+            if (player == null)
+                return;
 
-                // TODO: 玩家受伤系统
-
-                Destroy(gameObject);
-            }
+            EventBus.Publish(new OnPlayerDamageRequestedEvent(player, _damage));
+            Destroy(gameObject);
         }
     }
 }

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using Events;
 using Player;
+using Rewards.Shops;
 using Stats;
 using UnityEngine;
 
@@ -40,12 +42,17 @@ namespace Weapons.Items
             _items.Add(item);
         }
 
+        public bool TryAddItem(ItemData item)
+        {
+            AddItem(item);
+            return true;
+        }
+
         public void RemoveItem(ItemData item)
         {
             foreach (var modify in item.modifies)
             {
                 var stat = _player.Stats.GetStat(modify.statType);
-
                 stat.RemoveModifiersFromSource(item);
             }
             _items.Remove(item);

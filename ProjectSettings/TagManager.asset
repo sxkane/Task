@@ -11,12 +11,12 @@ TagManager:
   - 
   - Water
   - UI
-  - Player
+  - Character
   - Enemy
-  - Weapon
-  - 
-  - 
-  - 
+  - Projectile
+  - Pickup
+  - Wall
+  - WorldUI
   - 
   - 
   - 
@@ -40,6 +40,30 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 3660952337
+    locked: 0
+  - name: Ground
+    uniqueID: 2799368563
+    locked: 0
+  - name: World
+    uniqueID: 3640595209
+    locked: 0
+  - name: Character
+    uniqueID: 3650178649
+    locked: 0
+  - name: Foreground
+    uniqueID: 3550946521
+    locked: 0
+  - name: WorldVFX
+    uniqueID: 1625993913
+    locked: 0
+  - name: WorldUI
+    uniqueID: 2225778225
+    locked: 0
+  - name: UI
+    uniqueID: 312801007
     locked: 0
   m_RenderingLayers:
   - Default

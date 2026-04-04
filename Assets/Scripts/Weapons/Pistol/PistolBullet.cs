@@ -1,4 +1,6 @@
-﻿using Enemy;
+using Enemy;
+using Events;
+using Events.EnemyEvents;
 using ObjectPool;
 using Player;
 using Stats;
@@ -8,27 +10,35 @@ namespace Weapons.Pistol
 {
     public class PistolBullet : MonoBehaviour
     {
+        [SerializeField] private float lifetime = 3f;
+
         private Vector2 _dir;
         private float _speed;
         private PlayerController _player;
         private WeaponStats _stats;
         
-        public void Init(float moveSpeed, Transform target, Vector2 defaultDir, 
+        public void Init(float moveSpeed, Transform target, Vector2 defaultDir,
             PlayerController player, WeaponStats stats)
         {
-            if (target != null)
-                _dir = target.position - transform.position;
-            else
-                _dir = defaultDir;
-            
+            CancelInvoke();
+
+            _dir = target != null
+                ? ((Vector2)(target.position - transform.position)).normalized
+                : defaultDir.normalized;
+
             _speed = moveSpeed;
             _player = player;
             _stats = stats;
             
-            Invoke(nameof(ReturnToPool), moveSpeed);
+            Invoke(nameof(ReturnToPool), lifetime);
         }
 
-        public void Update()
+        private void OnDisable()
+        {
+            CancelInvoke();
+        }
+
+        private void Update()
         {
             transform.position += (Vector3)_dir * (_speed * Time.deltaTime);
         }
@@ -38,23 +48,20 @@ namespace Weapons.Pistol
             PoolManager.Instance.Despawn(gameObject);
         }
 
-        public void OnTriggerEnter2D(Collider2D collision)
+        private void OnTriggerEnter2D(Collider2D collision)
         {
             var enemy = collision.GetComponent<EnemyController>();
-            if (enemy != null)
-            {
-                var playerStats = _player.Stats;
-                int damage = DamageCalculator.CalculateBaseDamage(playerStats, _stats);
+            if (enemy == null)
+                return;
 
-                if (Random.value < playerStats.CritChance + _stats.critChance)
-                {
-                    damage = Mathf.RoundToInt(damage * _stats.critDamage);
-                }
-                
-                collision.GetComponent<EnemyController>().TakeDamage(damage);
-                
-                ReturnToPool();
-            }
+            var playerStats = _player.Stats;
+            int damage = DamageCalculator.CalculateBaseDamage(playerStats, _stats);
+
+            if (Random.value < playerStats.CritChance + _stats.critChance)
+                damage = Mathf.RoundToInt(damage * _stats.critDamage);
+            
+            EventBus.Publish(new OnEnemyDamageRequestedEvent(enemy, damage));
+            ReturnToPool();
         }
     }
 }

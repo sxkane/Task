@@ -1,4 +1,6 @@
-﻿using Enemy;
+using Enemy;
+using Events;
+using Events.EnemyEvents;
 using ObjectPool;
 using Player;
 using Stats;
@@ -8,28 +10,32 @@ namespace Weapons.FireBall
 {
     public class FireBallBullet : MonoBehaviour
     {
+        [Header("Movement")]
+        [SerializeField] private float turnRate = 360f;
+        [SerializeField] private float retargetInterval = 0.4f;
+        [SerializeField] private float lifetime = 5f;
+
         private Transform _target;
         private Vector3 _dir;
-        
         private WeaponStats _stats;
         private float _bulletSpeed;
+        private float _retargetTimer;
 
-        [Header("Manager")]
+        [Header("Runtime References")]
         private PlayerController _player;
         private EnemyManager _enemyManager;
 
-        [SerializeField] private float turnRate = 360f;
-        [SerializeField] private float retargetInterval = 0.4f;
-
-        private float _retargetTimer;
-        
         public void Init(WeaponStats stats, float bulletSpeed, PlayerController player, EnemyManager enemyManager)
         {
+            CancelInvoke();
+
             _stats = stats;
-            _bulletSpeed =  bulletSpeed;
+            _bulletSpeed = bulletSpeed;
             _player = player;
             _enemyManager = enemyManager;
-            
+            _target = null;
+            _retargetTimer = 0f;
+
             var enemy = _enemyManager.GetNearestEnemy(_player.transform.position);
 
             if (enemy != null)
@@ -42,30 +48,35 @@ namespace Weapons.FireBall
                 _dir = transform.up;
             }
 
-            Invoke(nameof(ReturnToPool), 5f);
+            Invoke(nameof(ReturnToPool), lifetime);
         }
 
-        void Update()
+        private void OnDisable()
+        {
+            CancelInvoke();
+        }
+
+        private void Update()
         {
             UpdateTarget();
             Move();
         }
 
-        void UpdateTarget()
+        private void UpdateTarget()
         {
             if (_target != null && _target.gameObject.activeInHierarchy)
                 return;
 
             _retargetTimer += Time.deltaTime;
 
-            if (_retargetTimer >= retargetInterval)
-            {
-                _retargetTimer = 0;
+            if (_retargetTimer < retargetInterval)
+                return;
 
-                var enemy = _enemyManager.GetNearestEnemy(_player.transform.position);
-                if (enemy != null)
-                    _target = enemy.transform;
-            }
+            _retargetTimer = 0;
+
+            var enemy = _enemyManager.GetNearestEnemy(_player.transform.position);
+            if (enemy != null)
+                _target = enemy.transform;
         }
 
         private void Move()
@@ -86,7 +97,7 @@ namespace Weapons.FireBall
             transform.up = _dir;
         }
 
-        void ReturnToPool()
+        private void ReturnToPool()
         {
             PoolManager.Instance.Despawn(gameObject);
         }
@@ -94,20 +105,17 @@ namespace Weapons.FireBall
         private void OnTriggerEnter2D(Collider2D collision)
         {
             var enemy = collision.GetComponent<EnemyController>();
-            if (enemy != null)
-            {
-                var playerStats = _player.Stats;
-                int damage = DamageCalculator.CalculateBaseDamage(playerStats, _stats);
+            if (enemy == null)
+                return;
 
-                if (Random.value < playerStats.CritChance + _stats.critChance)
-                {
-                    damage = Mathf.RoundToInt(damage * _stats.critDamage);
-                }
-                
-                collision.GetComponent<EnemyController>().TakeDamage(damage);
-                
-                ReturnToPool();
-            }
+            var playerStats = _player.Stats;
+            int damage = DamageCalculator.CalculateBaseDamage(playerStats, _stats);
+
+            if (Random.value < playerStats.CritChance + _stats.critChance)
+                damage = Mathf.RoundToInt(damage * _stats.critDamage);
+            
+            EventBus.Publish(new OnEnemyDamageRequestedEvent(enemy, damage));
+            ReturnToPool();
         }
     }
 }
