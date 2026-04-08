@@ -1,9 +1,9 @@
 using Events;
 using UnityEngine;
 
-namespace Enemy
+namespace Enemy.Attack
 {
-    public class EnemyBullet : MonoBehaviour
+    public class GoblinSorcererBullet : MonoBehaviour
     {
         [SerializeField] private float speed = 8f;
         [SerializeField] private float lifetime = 4f;

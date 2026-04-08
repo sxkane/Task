@@ -1,37 +1,19 @@
-using System;
 using Player;
+using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace UI.CharacterSelectUI
 {
-    public class PlayerIconSlot : MonoBehaviour, IPointerClickHandler
+    public class PlayerIconSlot : SelectionSlotBase<PlayerData>
     {
-        [SerializeField] private GameObject selectedFrame;
+        [Header("Visuals")]
         [SerializeField] private Image icon;
 
-        private PlayerData _data;
-        private Action<PlayerIconSlot, PlayerData> _onClick;
-            
-        public void Initialize(PlayerData data, Action<PlayerIconSlot, PlayerData> onClick)
+        protected override void RefreshVisuals(PlayerData data, bool isRandomSlot)
         {
-            _data = data;
-            _onClick = onClick;
-            SetSelected(false);
-
-            if (data != null)
-                icon.sprite = data.playerIcon;
-        }
-
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            _onClick?.Invoke(this, _data);
-        }
-        
-        public void SetSelected(bool value)
-        {
-            selectedFrame.SetActive(value);
+            if (icon != null && data != null)
+                icon.sprite = isRandomSlot ? randomIcon : data.playerIcon;
         }
     }
 }

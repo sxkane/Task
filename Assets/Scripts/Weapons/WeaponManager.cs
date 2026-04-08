@@ -90,15 +90,23 @@ namespace Weapons
             }
         }
 
-        public void Initialize(PlayerManager playerManager, WaveManager waveManager, List<WeaponData> initialWeapons)
+        public void Initialize(PlayerManager playerManager, WaveManager waveManager, List<WeaponLoadoutEntry> initialWeapons)
         {
             _player = playerManager.Player;
             _enemyManager = waveManager.EnemyManager;
             _maxWeaponCount = _player.Stats.MaxWeapons;
             _weaponParent = _player.transform;
+
+            if (initialWeapons == null)
+                return;
             
-            foreach (var w in initialWeapons)
-                TryAddWeapon(w, Rarity.Common);
+            foreach (var starterWeapon in initialWeapons)
+            {
+                if (starterWeapon?.weaponData == null)
+                    continue;
+
+                TryAddWeapon(starterWeapon.weaponData, starterWeapon.rarity);
+            }
         }
 
         public void Activate()

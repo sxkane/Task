@@ -18,7 +18,7 @@ namespace Enemy
 
         public bool IsAlive => CurrentHP > 0;
 
-        public void Init(EnemyStatTemplate template)
+        public void Initialize(EnemyStatTemplate template)
         {
             MaxHP = template.maxHP;
             CurrentHP = MaxHP;

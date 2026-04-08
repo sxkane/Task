@@ -1,3 +1,4 @@
+using Data;
 using Player;
 using Stats;
 using TMPro;
@@ -16,14 +17,14 @@ namespace UI.GameSceneUI
         [SerializeField] private TextMeshProUGUI attributeValueText;
         
         private string _statIntroductionText;
-        private PlayerStats _stat;
+        private PlayerStats _stats;
         private GameUIManager _gameUIManager;
 
         public void Initialize()
         {
             _gameUIManager = GetComponentInParent<GameUIManager>();
-            _stat = _gameUIManager.Player.Stats;
-            Bind(_stat);
+            _stats = _gameUIManager.Player.Stats;
+            Bind(_stats);
         }
         
         public void Bind(PlayerStats stats)
@@ -36,15 +37,15 @@ namespace UI.GameSceneUI
         private void Refresh()
         {
             attributeNameText.text = attributeName;
-            attributeValueText.text = _stat.GetStatValue(statType).ToString("F1");
-            _statIntroductionText = _stat.GetStatInfo(statType);
+            attributeValueText.text = _stats.GetStatValue(statType).ToString("F1");
+            _statIntroductionText = StatTextBuilder.BuildDescription(_stats, statType);
         }
 
         private void OnDestroy()
         {
-            if (_stat != null)
+            if (_stats != null)
             {
-                var stat = _stat.GetStat(statType);
+                var stat = _stats.GetStat(statType);
                 stat.OnValueChanged -= Refresh;
             }
         }

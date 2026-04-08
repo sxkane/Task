@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Melee Enemy
   m_EditorClassIdentifier: Assembly-CSharp::Enemy.EnemyStatTemplate
   maxHP: 10
-  moveSpeed: 3
+  moveSpeed: 2.2
   damage: 2
   attackInterval: 1.2
   knockbackResistance: 0
-  xpReward: 1
+  coinReward: 1
+  expReward: 1

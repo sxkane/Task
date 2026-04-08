@@ -7,6 +7,6 @@ namespace Core
     public class GameSession
     {
         public PlayerData SelectedPlayer;
-        public List<WeaponData> SelectedWeapons;
+        public List<WeaponLoadoutEntry> SelectedWeapons;
     }
 }

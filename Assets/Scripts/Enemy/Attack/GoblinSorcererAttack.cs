@@ -1,15 +1,19 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-namespace Enemy
+namespace Enemy.Attack
 {
-    public class EnemyRangedAttack : EnemyAttack
+    public class GoblinSorcererAttack : EnemyAttack
     {
         [SerializeField] private GameObject bulletPrefab;
         [SerializeField] private float attackRange = 6f;
         [SerializeField] private Transform firePoint;
 
-        protected override bool CanAttack()
+        public override bool CanAttack()
         {
+            if (!base.CanAttack())
+                return false;
+
             float dist = Vector2.Distance(
                 transform.position,
                 Target.position);
@@ -17,9 +21,9 @@ namespace Enemy
             return dist <= attackRange;
         }
 
-        protected override void Attack()
+        protected override void ExecuteAttack()
         {
-            if (bulletPrefab == null || firePoint == null)
+            if (bulletPrefab == null || firePoint == null || Target == null)
                 return;
 
             Vector2 dir =
@@ -30,7 +34,14 @@ namespace Enemy
                 firePoint.position,
                 Quaternion.identity);
 
-            bullet.GetComponent<EnemyBullet>().Init(dir, Stats.Damage);
+            bullet.GetComponent<GoblinSorcererBullet>().Init(dir, Stats.Damage);
+        }
+
+        public void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red;
+            
+            Gizmos.DrawSphere(transform.position, attackRange);
         }
     }
 }

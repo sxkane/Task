@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Weapons.WeaponData
   weaponID: 2
   weaponName: Pistol
+  description: 
+  icon: {fileID: -8029774753496570066, guid: 2ed17e0bbc6abb240a6bff94db56a53c, type: 3}
   weaponPrefab: {fileID: 6420424645419629567, guid: e861faf164b62ab48a26fe6db2a6a2d4, type: 3}
   rarityStats:
   - rarity: 0

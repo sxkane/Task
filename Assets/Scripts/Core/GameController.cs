@@ -28,7 +28,7 @@ namespace Core
         
         public GameFlowStateMachine StateMachine { get; private set; }
         public PlayerData SelectedPlayer { get; private set; }
-        public List<WeaponData> SelectedWeapons { get; private set; }
+        public List<WeaponLoadoutEntry> SelectedWeapons { get; private set; }
         public GameInputHandler GameInputHandler { get; private set; }
 
         [Header("Game Manager")]
@@ -65,7 +65,7 @@ namespace Core
             GameInputHandler = GetComponent<GameInputHandler>();
 
             SelectedPlayer = GameRoot.Instance.CurrentSession.SelectedPlayer;
-            SelectedWeapons = GameRoot.Instance.CurrentSession.SelectedWeapons = GameRoot.Instance.CurrentSession.SelectedPlayer.initialWeapons;
+            SelectedWeapons = GameRoot.Instance.CurrentSession.SelectedWeapons;
             
             EventBus.Subscribe<OnEnemyDiedEvent>(OnEnemyDied);
             
@@ -81,7 +81,7 @@ namespace Core
 
         private void Update()
         {
-            if (GameInputHandler == null || !GameInputHandler.IsPaused)
+            if (GameInputHandler == null || !GameInputHandler.ConsumePauseRequest())
                 return;
 
             TogglePause();

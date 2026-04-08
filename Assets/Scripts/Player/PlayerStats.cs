@@ -10,7 +10,6 @@ namespace Player
     {
         private Dictionary<StatType, Stat> _statsDict;
         private Dictionary<StatType, int> _statValueDict;
-        private Dictionary<StatType, string> _statInfoDict;
 
         public void Initialize()
         {
@@ -55,32 +54,10 @@ namespace Player
                 { StatType.Luck, Luck },
                 { StatType.Harvesting, Harvesting },
             };
-
-            _statInfoDict = new Dictionary<StatType, string>()
-            {
-                { StatType.MaxHP, MaxHpDetail },
-                { StatType.HPRegen, HpRegenDetail },
-                { StatType.LifeSteal, LifeStealDetail },
-                { StatType.Armor, ArmorDetail },
-                { StatType.Dodge, DodgeDetail },
-
-                { StatType.DamagePercent, DamageDetail },
-                { StatType.MeleeDamage, MeleeDamageDetail },
-                { StatType.RangedDamage, RangedDamageDetail },
-                { StatType.ElementalDamage, ElementalDamageDetail },
-                { StatType.AttackSpeed, AttackSpeedDetail },
-                { StatType.CritChance, CritChanceDetail },
-                { StatType.Range, RangeDetail },
-
-                { StatType.Speed, SpeedDetail },
-                { StatType.Luck, LuckDetail },
-                { StatType.Harvesting, HarvestingDetail },
-            };
         }
         
         public Stat GetStat(StatType type) => _statsDict[type];
         public int GetStatValue(StatType type) => _statValueDict[type];
-        public string GetStatInfo(StatType type) => _statInfoDict[type];
 
         #region ===== Survival =====
 
@@ -143,23 +120,6 @@ namespace Player
 
         public float DodgeChance => DodgePercent / 100f;
 
-        // ===== 显示字符串 =====
-
-        public string MaxHpDetail =>
-            $"最大能够承受 {MaxHp} 点伤害";
-
-        public string HpRegenDetail =>
-            $"每秒回复 {HpRegenPerSecond} Hp";
-
-        public string LifeStealDetail =>
-            $"每次造成伤害，{LifeStealPercent}% 的概率回复 1 Hp";
-
-        public string ArmorDetail =>
-            $"收到伤害为实际伤害的 {Mathf.RoundToInt((1f - DamageTakenMultiplier) * 100f)} %";
-
-        public string DodgeDetail =>
-            $"{DodgePercent}% 的概率闪避伤害";
-
         #endregion
 
 
@@ -218,16 +178,6 @@ namespace Player
         public float AttackSpeedMultiplier => 1f + AttackSpeedStat.Value / 100f;
         public float CritChance => Mathf.Max(0, CritChanceStat.Value) / 100f;
 
-        // ===== 显示 =====
-
-        public string DamageDetail => $"伤害增加 {DamagePercent}%";
-        public string AttackSpeedDetail => $"攻速增加 {AttackSpeedPercent}%";
-        public string CritChanceDetail => $"{CritChancePercent}% 造成暴击伤害";
-        public string MeleeDamageDetail => $"近战伤害增加 {MeleeDamage}";
-        public string RangedDamageDetail => $"远程伤害增加 {RangedDamage}";
-        public string ElementalDamageDetail => $"元素伤害增加 {ElementalDamage}";
-        public string RangeDetail => $"范围增加 {Range}";
-
         #endregion
 
 
@@ -245,11 +195,6 @@ namespace Player
         public int MaxWeapons => Mathf.RoundToInt(MaxWeaponsStat.Value);
 
         public float MoveSpeedMultiplier => 1f + SpeedPercent / 100f;
-
-        public string SpeedDetail => $"速度增加 {SpeedPercent}%";
-        public string LuckDetail => $"幸运增加 {Luck}";
-        public string HarvestingDetail =>
-            $"每回合结束获得 {Harvesting}经验和金币";
 
         #endregion
     }

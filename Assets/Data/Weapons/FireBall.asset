@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Weapons.WeaponData
   weaponID: 1
   weaponName: FireBall
+  description: 
+  icon: {fileID: -4536127456585671622, guid: 574710ca5f1dcf74c96c74a9a8197a4a, type: 3}
   weaponPrefab: {fileID: 499603121353363577, guid: 570d6270e85e6f242bca83422573b482, type: 3}
   rarityStats:
   - rarity: 0

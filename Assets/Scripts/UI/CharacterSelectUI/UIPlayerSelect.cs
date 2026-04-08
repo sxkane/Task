@@ -3,97 +3,92 @@ using Core;
 using Data;
 using Player;
 using UnityEngine;
-using UnityEngine.UI;
+using Weapons;
 using Random = UnityEngine.Random;
 
 namespace UI.CharacterSelectUI
 {
     public class UIPlayerSelect : MonoBehaviour
     {
-        public static UIPlayerSelect Instance;
+        [Header("Pages")]
+        [SerializeField] private CharacterSelectionPage characterSelectionPage;
+        [SerializeField] private WeaponSelectionPage weaponSelectionPage;
 
-        [SerializeField] private Button startButton;
-        [SerializeField] private Transform playerIconParent;
-        [SerializeField] private PlayerIconSlot playerSlotPrefab;
-        [SerializeField] private PlayerInformationSlot infoSlot;
+        [Header("Data")]
         [SerializeField] private GameDatabase gameDatabase;
-        
-        private readonly List<PlayerIconSlot> _slots = new();
-        private PlayerData _selectedPlayer;
-        private PlayerIconSlot _selectedSlot;
 
-        private void Awake()
-        {
-            if (Instance != null)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            Instance = this;
-        }
+        private PlayerData _confirmedPlayer;
 
         private void Start()
         {
-            var allPlayers = gameDatabase.players;
-
-            var randomSlot = Instantiate(playerSlotPrefab, playerIconParent);
-            randomSlot.Initialize(null, OnPlayerSelected);
-            _slots.Add(randomSlot);
-
-            foreach (var player in allPlayers)
-            {
-                var slot = Instantiate(playerSlotPrefab, playerIconParent);
-                slot.Initialize(player, OnPlayerSelected);
-                _slots.Add(slot);
-            }
-
-            OnPlayerSelected(null, null);
+            characterSelectionPage.Configure(gameDatabase.players, HandleCharacterConfirmed, HandleRandomPlayer);
+            weaponSelectionPage.Configure(HandleBackToCharacterSelection, HandleWeaponConfirmed);
+            OpenCharacterSelectionPage();
         }
 
-        private void OnEnable()
+        private void HandleCharacterConfirmed(PlayerData player)
         {
-            startButton.onClick.AddListener(OnClickStart);
+            _confirmedPlayer = player;
+            OpenWeaponSelectionPage(player);
         }
 
-        private void OnDisable()
+        private void HandleWeaponConfirmed(WeaponLoadoutEntry weapon)
         {
-            startButton.onClick.RemoveListener(OnClickStart);
-        }
-
-        private void OnPlayerSelected(PlayerIconSlot slot, PlayerData data)
-        {
-            _selectedSlot = slot;
-            _selectedPlayer = data;
-
-            foreach (var iconSlot in _slots)
-            {
-                iconSlot.SetSelected(iconSlot == _selectedSlot && _selectedSlot != null);
-            }
-
-            if (data == null)
-            {
-                infoSlot.ShowRandomPlayer();
-            }
-            else
-            {
-                infoSlot.ShowPlayer(data.playerName, "");
-            }
-        }
-
-        private void OnClickStart()
-        {
-            SelectPlayer();
-            GameRoot.Instance.StartGame(new GameSession { SelectedPlayer = _selectedPlayer });
-        }
-
-        private void SelectPlayer()
-        {
-            if (_selectedPlayer != null) 
+            if (_confirmedPlayer == null)
                 return;
 
-            var allPlayers = gameDatabase.players;
-            _selectedPlayer = allPlayers[Random.Range(0, allPlayers.Count)];
+            StartGame(_confirmedPlayer, weapon);
+        }
+        
+        private void HandleRandomPlayer()
+        {
+            if (gameDatabase.players == null || gameDatabase.players.Count == 0)
+                return;
+
+            _confirmedPlayer = gameDatabase.players[Random.Range(0, gameDatabase.players.Count)];
+
+            OpenWeaponSelectionPage(_confirmedPlayer);
+        }
+
+        private void HandleBackToCharacterSelection()
+        {
+            OpenCharacterSelectionPage();
+        }
+
+        private void OpenCharacterSelectionPage()
+        {
+            characterSelectionPage.PreviewCharacter(_confirmedPlayer);
+            characterSelectionPage.SetPageVisible(true);
+            weaponSelectionPage.SetPageVisible(false);
+        }
+
+        private void OpenWeaponSelectionPage(PlayerData player)
+        {
+            weaponSelectionPage.ShowStarterWeapons(player);
+            characterSelectionPage.SetPageVisible(false);
+            weaponSelectionPage.SetPageVisible(true);
+        }
+
+        private static WeaponLoadoutEntry GetRandomStarterWeapon(PlayerData player)
+        {
+            var starterWeapons = player != null ? player.starterWeapons : null;
+            if (starterWeapons == null || starterWeapons.Count == 0)
+                return null;
+
+            return starterWeapons[Random.Range(0, starterWeapons.Count)];
+        }
+
+        private static void StartGame(PlayerData player, WeaponLoadoutEntry weapon)
+        {
+            var selectedWeapons = new List<WeaponLoadoutEntry>();
+            if (weapon != null)
+                selectedWeapons.Add(weapon);
+
+            GameRoot.Instance.StartGame(new GameSession
+            {
+                SelectedPlayer = player,
+                SelectedWeapons = selectedWeapons
+            });
         }
     }
 }

@@ -13,7 +13,6 @@ namespace UI.GameSceneUI
         [Header("Layout")]
         [SerializeField] private float verticalOffset = 18f;
         [SerializeField] private float horizontalPadding = 12f;
-        [SerializeField] private float verticalPadding = 12f;
         
         private RectTransform _rootRect;
 

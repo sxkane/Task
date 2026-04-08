@@ -5,9 +5,8 @@ namespace Core
 {
     public class GameInputHandler : MonoBehaviour
     {
-        public bool IsPaused { get; private set; }
-        
         private InputAction _pauseAction;
+        private bool _pauseRequested;
         private bool _isInitialized;
         private bool _isInputEnabled;
 
@@ -17,7 +16,7 @@ namespace Core
                 return;
 
             if (_pauseAction.WasPressedThisFrame())
-                IsPaused = true;
+                _pauseRequested = true;
         }
 
         public void Initialize()
@@ -25,7 +24,16 @@ namespace Core
             _pauseAction = InputSystem.actions.FindAction("Pause");
             _isInitialized = _pauseAction != null;
             _isInputEnabled = _isInitialized;
-            IsPaused = false;
+            _pauseRequested = false;
+        }
+
+        public bool ConsumePauseRequest()
+        {
+            if (!_pauseRequested)
+                return false;
+
+            _pauseRequested = false;
+            return true;
         }
 
         public void EnableInput()
@@ -39,6 +47,7 @@ namespace Core
         public void DisableInput()
         {
             _isInputEnabled = false;
+            _pauseRequested = false;
         }
     }
 }

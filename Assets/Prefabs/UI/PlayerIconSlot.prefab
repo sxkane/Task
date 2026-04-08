@@ -210,4 +210,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UI.UIPlayerSelection.PlayerIconSlot
   selectedFrame: {fileID: 6681417271420383418}
+  randomIcon: {fileID: -769894619084422448, guid: c7ad47903db959145923b3632654d047, type: 3}
   icon: {fileID: 1588859682097423914}

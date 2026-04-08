@@ -12,8 +12,7 @@ namespace Player
 
         private PlayerController _player;
         private Animator _animator;
-        private SpriteRenderer[] _spriteRenderers;
-        private Color[] _baseColors;
+        private SpriteRenderer _spriteRenderer;
 
         private bool _initialized;
         private Coroutine _flashRoutine;
@@ -35,13 +34,7 @@ namespace Player
         {
             _player = GetComponentInParent<PlayerController>();
             _animator = GetComponent<Animator>();
-            _spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
-            _baseColors = new Color[_spriteRenderers.Length];
-
-            for (int i = 0; i < _spriteRenderers.Length; i++)
-            {
-                _baseColors[i] = _spriteRenderers[i].color;
-            }
+            _spriteRenderer = GetComponent<SpriteRenderer>();
             
             _initialized = true;
         }
@@ -72,28 +65,33 @@ namespace Player
 
         private IEnumerator FlashRoutine()
         {
-            SetSpritesColor(FlashColor);
-            yield return new WaitForSeconds(0.08f);
-            RestoreSpritesColor();
+            Color original = _spriteRenderer.color;
+
+            float flashDuration = 0.08f;
+            float lerpSpeed = 10f;
+            
+            float t = 0f;
+            while (t < 1f)
+            {
+                t += Time.deltaTime * lerpSpeed;
+                _spriteRenderer.color = Color.Lerp(original, FlashColor, t);
+                yield return null;
+            }
+
+            _spriteRenderer.color = FlashColor;
+
+            yield return new WaitForSeconds(flashDuration);
+            
+            t = 0f;
+            while (t < 1f)
+            {
+                t += Time.deltaTime * lerpSpeed;
+                _spriteRenderer.color = Color.Lerp(FlashColor, original, t);
+                yield return null;
+            }
+
+            _spriteRenderer.color = original;
             _flashRoutine = null;
-        }
-
-        private void SetSpritesColor(Color color)
-        {
-            foreach (var spriteRenderer in _spriteRenderers)
-            {
-                if (spriteRenderer != null)
-                    spriteRenderer.color = color;
-            }
-        }
-
-        private void RestoreSpritesColor()
-        {
-            for (int i = 0; i < _spriteRenderers.Length; i++)
-            {
-                if (_spriteRenderers[i] != null)
-                    _spriteRenderers[i].color = _baseColors[i];
-            }
         }
     }
 }

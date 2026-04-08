@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Enemy;
 using Events;
 using Events.WaveEvents;
+using ObjectPool;
 using Player;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -21,6 +22,8 @@ namespace Waves
         private float _spawnTimer;
         private float _timer;
         private int _lastSecond = -1;
+        
+        private PoolManager pool;
         
         public int CurrentWave { get; private set; }
         private bool _isActive;
@@ -85,8 +88,9 @@ namespace Waves
                           Random.insideUnitCircle.normalized * radius;
 
             GameObject prefab = GetRandomEnemy(wave);
-
-            var enemy = Instantiate(prefab, pos, Quaternion.identity);
+            
+            var enemy = pool.Spawn(prefab, pos, Quaternion.identity);
+            
             enemy.GetComponent<EnemyController>().Initialize(_player, EnemyManager);
         }
 
@@ -117,6 +121,8 @@ namespace Waves
             _player = playerManager.Player.transform;
             EnemyManager = new EnemyManager();
             CurrentWave = -1;
+            
+            pool = PoolManager.Instance;
         }
 
         public void StartNextWave()

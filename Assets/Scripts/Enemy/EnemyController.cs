@@ -1,24 +1,90 @@
+using System;
+using System.Diagnostics;
+using Enemy.EnemyStates;
 using Events;
 using Events.EnemyEvents;
+using ObjectPool;
 using UnityEngine;
 
 namespace Enemy
 {
     public class EnemyController : MonoBehaviour
     {
+        [Header("Enemy Information")]
+        [SerializeField] private EnemyStatTemplate template;
+        [SerializeField] public LayerMask enemyLayer;
+        
+        [Header("States")]
+        public EnemyStateMachine Machine { get; private set; }
+        public EnemyMoveState MoveState { get; private set; }
+        public EnemyAttackState AttackState { get; private set; }
+        
+        [Header("Components")]
+        public Transform Transform { get; private set; }
+        public Rigidbody2D Rigidbody { get; private set; }
+        public Animator Animator { get; private set; }
+        public SpriteRenderer SpriteRenderer { get; private set; }
+        
+        [Header("Stats")]
         public Transform Target { get; private set; }
         public EnemyStats Stats { get; private set; }
+        public EnemyVisual Visual { get; private set; }
+        public Attack.EnemyAttack Attack { get; private set; }
+        public EnemyAnimationFunction Function { get; private set; }
 
+        [Header("Others")]
         private EnemyManager _enemyManager;
+        private bool _initialize;
 
-        [SerializeField] private EnemyStatTemplate template;
-
-        private void Awake()
+        public void Initialize(Transform target, EnemyManager enemyManager)
         {
+            // States
+            Machine = new EnemyStateMachine();
+            MoveState = new EnemyMoveState(this, Machine);
+            AttackState = new EnemyAttackState(this, Machine);
+            
+            // Components
+            Transform = GetComponent<Transform>();
+            Rigidbody = GetComponent<Rigidbody2D>();
+            Animator = GetComponentInChildren<Animator>();
+            SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            
+            // Stats
+            Target = target;
+            _enemyManager = enemyManager;
             Stats = new EnemyStats();
-            Stats.Init(template);
+            Attack = GetComponent<Attack.EnemyAttack>();
+            Visual = GetComponentInChildren<EnemyVisual>();
+            Function = GetComponentInChildren<EnemyAnimationFunction>();
+
+            // Initialize
+            _enemyManager.Register(this);
+            
+            Stats.Initialize(template);
+            Attack.Initialize(this);
+            Visual.Initialize(this);
+            Function.InitializeAnimationFunction(this);
+            
+            Machine.Initialize(MoveState);
+            _initialize = true;
         }
 
+        private void FixedUpdate()
+        {
+            if (!_initialize)
+                return;
+            
+            Machine.currentState.FixedUpdate();
+        }
+        
+        public void Update()
+        {
+            if (!_initialize)
+                return;
+            
+            Machine.currentState.Update();
+        }
+        
         private void OnEnable()
         {
             EventBus.Subscribe<OnEnemyDamageRequestedEvent>(OnDamageRequested);
@@ -29,25 +95,18 @@ namespace Enemy
             EventBus.Unsubscribe<OnEnemyDamageRequestedEvent>(OnDamageRequested);
         }
 
-        public void Initialize(Transform target, EnemyManager enemyManager)
-        {
-            Target = target;
-            _enemyManager = enemyManager;
-            _enemyManager.Register(this);
-        }
-
         private void OnDamageRequested(OnEnemyDamageRequestedEvent e)
         {
             if (e.Target != this || !Stats.IsAlive)
                 return;
-
+            
             Stats.TakeDamage(e.Damage);
             EventBus.Publish(new OnEnemyDamagedEvent(this, Mathf.RoundToInt(e.Damage)));
 
             if (!Stats.IsAlive)
                 Die();
         }
-
+        
         public void TakeDamage(float damage)
         {
             EventBus.Publish(new OnEnemyDamageRequestedEvent(this, damage));
@@ -55,11 +114,20 @@ namespace Enemy
 
         private void Die()
         {
-            // TODO: 播放死亡特效 / 掉落经验
-
             _enemyManager?.Unregister(this);
             EventBus.Publish(new OnEnemyDiedEvent(this));
-            Destroy(gameObject);
+            PoolManager.Instance.Despawn(gameObject);
+        }
+
+        public void ChangeState(EnemyStateEnum state)
+        {
+            EnemyState newState = state switch
+            {
+                EnemyStateEnum.Move => MoveState,
+                EnemyStateEnum.Attack => AttackState,
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+            };
+            Machine.ChangeState(newState);
         }
     }
 }
