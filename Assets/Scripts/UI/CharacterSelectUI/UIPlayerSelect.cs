@@ -4,7 +4,6 @@ using Data;
 using Player;
 using UnityEngine;
 using Weapons;
-using Random = UnityEngine.Random;
 
 namespace UI.CharacterSelectUI
 {
@@ -45,7 +44,7 @@ namespace UI.CharacterSelectUI
             if (gameDatabase.players == null || gameDatabase.players.Count == 0)
                 return;
 
-            _confirmedPlayer = gameDatabase.players[Random.Range(0, gameDatabase.players.Count)];
+            _confirmedPlayer = gameDatabase.players[UnityEngine.Random.Range(0, gameDatabase.players.Count)];
 
             OpenWeaponSelectionPage(_confirmedPlayer);
         }
@@ -67,15 +66,6 @@ namespace UI.CharacterSelectUI
             weaponSelectionPage.ShowStarterWeapons(player);
             characterSelectionPage.SetPageVisible(false);
             weaponSelectionPage.SetPageVisible(true);
-        }
-
-        private static WeaponLoadoutEntry GetRandomStarterWeapon(PlayerData player)
-        {
-            var starterWeapons = player != null ? player.starterWeapons : null;
-            if (starterWeapons == null || starterWeapons.Count == 0)
-                return null;
-
-            return starterWeapons[Random.Range(0, starterWeapons.Count)];
         }
 
         private static void StartGame(PlayerData player, WeaponLoadoutEntry weapon)

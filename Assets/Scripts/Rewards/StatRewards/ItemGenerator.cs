@@ -114,15 +114,17 @@ namespace Rewards.StatRewards
                 {
                     type = ShopItemType.Item,
                     itemData = items[Random.Range(0, items.Count)],
-                    rarity = rarity,
                 };
             }
 
             return new ShopItem()
             {
                 type = ShopItemType.Weapon,
-                weaponData = weapons[Random.Range(0, weapons.Count)],
-                rarity = rarity
+                weaponEntry = new WeaponLoadoutEntry
+                {
+                    weaponData = weapons[Random.Range(0, weapons.Count)],
+                    rarity = rarity
+                }
             };
         }
     }

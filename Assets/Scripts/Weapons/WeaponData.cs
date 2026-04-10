@@ -19,7 +19,32 @@ namespace Weapons
         [Header("Rarity Settings")]
         public List<WeaponStats> rarityStats;
 
-        public string GetSummaryText()
+        public bool IsValid()
+        {
+            return weaponID >= 0 && !string.IsNullOrWhiteSpace(weaponName) && weaponPrefab != null;
+        }
+
+        public int GetDataId()
+        {
+            return weaponID;
+        }
+
+        public string GetDisplayName()
+        {
+            return weaponName;
+        }
+
+        public string GetValidationSourceName()
+        {
+            return string.IsNullOrWhiteSpace(weaponName) ? name : weaponName;
+        }
+
+        public Sprite GetIcon()
+        {
+            return icon;
+        }
+
+        public string GetSummary()
         {
             if (!string.IsNullOrWhiteSpace(summary))
                 return summary.Trim();

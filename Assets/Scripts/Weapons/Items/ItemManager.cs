@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Events;
+using Events.DisplayEvent;
 using Player;
 using Rewards.Shops;
 using Stats;
@@ -56,6 +57,16 @@ namespace Weapons.Items
                 stat.RemoveModifiersFromSource(item);
             }
             _items.Remove(item);
+        }
+
+        public void RemoveAllItems()
+        {
+            _items.Clear();
+        }
+
+        private void ShowAllItems()
+        {
+            EventBus.Publish(new OnItemsDisplay(_items));
         }
         
         public void Initialize(PlayerManager player)

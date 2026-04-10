@@ -76,9 +76,9 @@ namespace UI.CharacterSelectUI
             if (player == null)
                 return;
 
-            foreach (var starterWeapon in player.starterWeapons)
+            foreach (var starterWeapon in player.GetStarterWeaponEntries())
             {
-                if (starterWeapon?.weaponData == null)
+                if (starterWeapon == null || !starterWeapon.IsValid())
                     continue;
 
                 _starterWeapons.Add(starterWeapon);

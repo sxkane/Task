@@ -25,18 +25,18 @@ namespace UI.GameSceneUI
         {
             _item = item;
             
-            if (item.type == ShopItemType.Item)
+            if (item.IsItem)
             {
-                nameText.text = item.itemData.itemName;
+                nameText.text = item.GetDisplayName();
                 rewardText.text = item.itemData.price.ToString();
                 descriptionText.text = GameDataTextBuilder.BuildItemDescription(item.itemData);
             }
             else
             {
-                var weaponStats = item.weaponData.GetStats(item.rarity);
-                nameText.text = item.weaponData.weaponName;
+                var weaponStats = item.weaponEntry.GetStats();
+                nameText.text = item.GetDisplayName();
                 rewardText.text = weaponStats.price.ToString();
-                descriptionText.text = GameDataTextBuilder.BuildWeaponDescription(item.weaponData, item.rarity);
+                descriptionText.text = GameDataTextBuilder.BuildWeaponDescription(item.weaponEntry);
             }
             
             gameObject.SetActive(true);

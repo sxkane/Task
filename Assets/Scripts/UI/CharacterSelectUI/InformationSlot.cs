@@ -25,22 +25,22 @@ namespace UI.CharacterSelectUI
                 return;
             }
 
-            titleText.text = data.playerName;
+            titleText.text = data.GetDisplayName();
             descriptionText.text = GameDataTextBuilder.BuildPlayerDescription(data);
-            icon.sprite = data.playerIcon;
+            icon.sprite = data.GetIcon();
         }
 
         public void ShowWeapon(WeaponLoadoutEntry data)
         {
-            if (data == null)
+            if (data == null || !data.IsValid())
             {
                 Clear();
                 return;
             }
 
-            titleText.text = data.weaponData.weaponName;
+            titleText.text = data.GetDisplayName();
             descriptionText.text = GameDataTextBuilder.BuildWeaponDescription(data);
-            icon.sprite = data.weaponData.icon;
+            icon.sprite = data.GetIcon();
         }
 
         public void ShowRandomPlayer()

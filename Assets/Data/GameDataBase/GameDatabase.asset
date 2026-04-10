@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9f7df7a13979426b8d6861a2a11c609e, type: 3}
-  m_Name: Database
+  m_Name: GameDatabase
   m_EditorClassIdentifier: Assembly-CSharp::Data.GameDatabase
   players:
   - {fileID: 11400000, guid: 5b8dab206c86fc947a9052f4a27a3da3, type: 2}

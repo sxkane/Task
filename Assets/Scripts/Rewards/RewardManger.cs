@@ -163,8 +163,10 @@ namespace Rewards
 
             _pendingPurchaseSucceeded = false;
 
-            if (e.ShopItem.type == ShopItemType.Weapon)
-                _pendingPurchaseSucceeded = _weaponManager.TryAddWeapon(e.ShopItem.weaponData, e.ShopItem.rarity);
+            if (e.ShopItem.IsWeapon)
+                _pendingPurchaseSucceeded = _weaponManager.TryAddWeapon(
+                    e.ShopItem.weaponEntry.weaponData,
+                    e.ShopItem.weaponEntry.rarity);
             else
                 _pendingPurchaseSucceeded = _itemManager.TryAddItem(e.ShopItem.itemData);
 

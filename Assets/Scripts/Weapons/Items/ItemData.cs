@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Player;
 using Stats;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Weapons.Items
@@ -29,7 +27,32 @@ namespace Weapons.Items
         
         public List<Effect> effects;
 
-        public string GetSummaryText()
+        public bool IsValid()
+        {
+            return itemID >= 0 && !string.IsNullOrWhiteSpace(itemName);
+        }
+
+        public int GetDataId()
+        {
+            return itemID;
+        }
+
+        public string GetDisplayName()
+        {
+            return itemName;
+        }
+
+        public string GetValidationSourceName()
+        {
+            return string.IsNullOrWhiteSpace(itemName) ? name : itemName;
+        }
+
+        public Sprite GetIcon()
+        {
+            return itemIcon != null ? itemIcon.sprite : null;
+        }
+
+        public string GetSummary()
         {
             if (!string.IsNullOrWhiteSpace(summary))
                 return summary.Trim();

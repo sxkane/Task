@@ -36,16 +36,16 @@ namespace Data
                     sections.Add(string.Join("\n", statLines));
             }
 
-            var starterWeapons = playerData.starterWeapons;
+            var starterWeapons = playerData.GetStarterWeaponEntries();
             if (starterWeapons.Count > 0)
             {
                 var weaponNames = new List<string>();
                 foreach (var entry in starterWeapons)
                 {
-                    if (entry?.weaponData == null)
+                    if (entry == null || !entry.IsValid())
                         continue;
 
-                    weaponNames.Add($"{entry.weaponData.weaponName} ({entry.rarity})");
+                    weaponNames.Add($"{entry.GetDisplayName()} ({entry.rarity})");
                 }
 
                 if (weaponNames.Count > 0)
@@ -70,7 +70,7 @@ namespace Data
 
             var sections = new List<string>();
 
-            string weaponSummary = weaponData.GetSummaryText();
+            string weaponSummary = weaponData.GetSummary();
             if (!string.IsNullOrWhiteSpace(weaponSummary))
                 sections.Add(weaponSummary);
 
@@ -126,7 +126,7 @@ namespace Data
                 return string.Empty;
 
             var sections = new List<string>();
-            string itemSummary = itemData.GetSummaryText();
+            string itemSummary = itemData.GetSummary();
             if (!string.IsNullOrWhiteSpace(itemSummary))
                 sections.Add(itemSummary);
 
