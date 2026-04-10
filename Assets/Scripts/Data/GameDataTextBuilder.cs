@@ -57,67 +57,12 @@ namespace Data
 
         public static string BuildWeaponDescription(WeaponLoadoutEntry entry)
         {
-            if (entry == null || entry.weaponData == null)
-                return string.Empty;
-
-            return BuildWeaponDescription(entry.weaponData, entry.rarity);
+            return WeaponTextBuilder.BuildDescription(entry);
         }
 
         public static string BuildWeaponDescription(WeaponData weaponData, Rarity rarity)
         {
-            if (weaponData == null)
-                return string.Empty;
-
-            var sections = new List<string>();
-
-            string weaponSummary = weaponData.GetSummary();
-            if (!string.IsNullOrWhiteSpace(weaponSummary))
-                sections.Add(weaponSummary);
-
-            var stats = weaponData.GetStats(rarity);
-            if (stats != null)
-            {
-                var statLines = new List<string>();
-
-                if (stats.damage != null)
-                {
-                    foreach (var damage in stats.damage)
-                    {
-                        if (damage.damage <= 0 && damage.percentage <= 0)
-                            continue;
-
-                        string damageType = damage.damageType switch
-                        {
-                            DamageType.Melee => "Melee",
-                            DamageType.Ranged => "Ranged",
-                            DamageType.Elemental => "Elemental",
-                            _ => damage.damageType.ToString()
-                        };
-
-                        if (damage.damage > 0 && damage.percentage > 0)
-                            statLines.Add($"+{damage.damage:0.#} {damageType} ({damage.percentage}%)");
-                        else if (damage.damage > 0)
-                            statLines.Add($"+{damage.damage:0.#} {damageType}");
-                        else
-                            statLines.Add($"+{damage.percentage}% {damageType}");
-                    }
-                }
-
-                AppendValueLine(statLines, stats.attackSpeed, "Attack Speed");
-                AppendValueLine(statLines, stats.critChance, "Crit Chance");
-                AppendValueLine(statLines, stats.critDamage, "Crit Damage");
-                AppendValueLine(statLines, stats.range, "Range");
-                AppendValueLine(statLines, stats.knockback, "Knockback");
-
-                if (statLines.Count > 0)
-                    sections.Add(string.Join("\n", statLines));
-
-                var effectLines = BuildEffectDescriptions(stats.effects);
-                if (effectLines.Count > 0)
-                    sections.Add(string.Join("\n", effectLines));
-            }
-
-            return JoinSections(sections);
+            return WeaponTextBuilder.BuildDescription(weaponData, rarity);
         }
 
         public static string BuildItemDescription(ItemData itemData)
@@ -183,6 +128,9 @@ namespace Data
             foreach (var effect in effects)
             {
                 if (effect == null)
+                    continue;
+
+                if (!effect.IsValid())
                     continue;
 
                 string description = effect.BuildDescription();

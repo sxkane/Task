@@ -34,7 +34,7 @@ namespace Rewards
 
         #region Life Cycle
 
-        public void Initialize(PlayerManager playerManager, WeaponManager weaponManager, ItemManager itemManager,
+        public void Configure(PlayerManager playerManager, WeaponManager weaponManager, ItemManager itemManager,
             WaveManager waveManager)
         {
             _player = playerManager.Player;
@@ -43,7 +43,7 @@ namespace Rewards
             _itemManager = itemManager;
         }
         
-        public void Activate()
+        public void BeginPhase()
         {
             EventBus.Subscribe<OnShopItemLockedEvent>(LockShopItem);
             EventBus.Subscribe<OnShopRefreshEvent>(RefreshShop);
@@ -57,7 +57,7 @@ namespace Rewards
             _publishCoroutine = StartCoroutine(PublishShopItemsNextFrame());
         }
 
-        public void Deactivate()
+        public void EndPhase()
         {
             EventBus.Unsubscribe<OnShopItemLockedEvent>(LockShopItem);
             EventBus.Unsubscribe<OnShopRefreshEvent>(RefreshShop);
@@ -69,6 +69,12 @@ namespace Rewards
                 _publishCoroutine = null;
             }
         }
+
+        // Legacy wrappers.
+        public void Initialize(PlayerManager playerManager, WeaponManager weaponManager, ItemManager itemManager,
+            WaveManager waveManager) => Configure(playerManager, weaponManager, itemManager, waveManager);
+        public void Activate() => BeginPhase();
+        public void Deactivate() => EndPhase();
 
         private IEnumerator PublishShopItemsNextFrame()
         {
@@ -164,9 +170,7 @@ namespace Rewards
             _pendingPurchaseSucceeded = false;
 
             if (e.ShopItem.IsWeapon)
-                _pendingPurchaseSucceeded = _weaponManager.TryAddWeapon(
-                    e.ShopItem.weaponEntry.weaponData,
-                    e.ShopItem.weaponEntry.rarity);
+                _pendingPurchaseSucceeded = _weaponManager.TryAddWeapon(e.ShopItem.GetWeaponEntry());
             else
                 _pendingPurchaseSucceeded = _itemManager.TryAddItem(e.ShopItem.itemData);
 

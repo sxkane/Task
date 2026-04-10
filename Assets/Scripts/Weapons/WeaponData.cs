@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Weapons
@@ -15,13 +15,20 @@ namespace Weapons
 
         [Header("Visual")]
         public GameObject weaponPrefab;
+        
+        [Header("Set Tags")]
+        public List<WeaponTag> tags = new();
 
         [Header("Rarity Settings")]
         public List<WeaponStats> rarityStats;
 
         public bool IsValid()
         {
-            return weaponID >= 0 && !string.IsNullOrWhiteSpace(weaponName) && weaponPrefab != null;
+            return weaponID >= 0
+                   && !string.IsNullOrWhiteSpace(weaponName)
+                   && weaponPrefab != null
+                   && rarityStats != null
+                   && rarityStats.Count > 0;
         }
 
         public int GetDataId()
@@ -58,7 +65,123 @@ namespace Weapons
                 return null;
 
             var found = rarityStats.Find(r => r.rarity == rarity);
-            return found ?? rarityStats[0];
+            if (found != null)
+                return found;
+
+            var normalized = GetClosestAvailableRarity(rarity);
+            return rarityStats.Find(r => r != null && r.rarity == normalized);
+        }
+
+        public bool HasRarity(Rarity rarity)
+        {
+            if (rarityStats == null)
+                return false;
+
+            return rarityStats.Exists(r => r != null && r.rarity == rarity);
+        }
+
+        public WeaponLoadoutEntry CreateEntry(Rarity rarity)
+        {
+            var normalizedRarity = GetClosestAvailableRarity(rarity);
+            return new WeaponLoadoutEntry
+            {
+                weaponData = this,
+                rarity = normalizedRarity
+            };
+        }
+
+        public WeaponRuntimeEntry CreateRuntimeEntry(Rarity rarity)
+        {
+            var normalizedRarity = GetClosestAvailableRarity(rarity);
+            return new WeaponRuntimeEntry
+            {
+                weaponData = this,
+                rarity = normalizedRarity
+            };
+        }
+
+        public bool TryCreateEntry(Rarity rarity, out WeaponLoadoutEntry entry)
+        {
+            entry = null;
+            if (!IsValid())
+                return false;
+
+            var normalizedRarity = GetClosestAvailableRarity(rarity);
+            if (!HasRarity(normalizedRarity))
+                return false;
+
+            entry = CreateEntry(normalizedRarity);
+            return true;
+        }
+
+        public WeaponLoadoutEntry CreateDefaultEntry()
+        {
+            return CreateEntry(GetLowestAvailableRarity());
+        }
+
+        public WeaponSelectionEntry CreateSelectionEntry(Rarity rarity)
+        {
+            var normalizedRarity = GetClosestAvailableRarity(rarity);
+            return new WeaponSelectionEntry
+            {
+                weaponData = this,
+                rarity = normalizedRarity
+            };
+        }
+
+        public Rarity GetClosestAvailableRarity(Rarity requested)
+        {
+            if (HasRarity(requested))
+                return requested;
+
+            for (int i = (int)requested + 1; i <= (int)Rarity.Legendary; i++)
+            {
+                var candidate = (Rarity)i;
+                if (HasRarity(candidate))
+                    return candidate;
+            }
+
+            for (int i = (int)requested - 1; i >= (int)Rarity.Common; i--)
+            {
+                var candidate = (Rarity)i;
+                if (HasRarity(candidate))
+                    return candidate;
+            }
+
+            return requested;
+        }
+
+        public Rarity GetLowestAvailableRarity()
+        {
+            for (int i = (int)Rarity.Common; i <= (int)Rarity.Legendary; i++)
+            {
+                var candidate = (Rarity)i;
+                if (HasRarity(candidate))
+                    return candidate;
+            }
+
+            return Rarity.Common;
+        }
+
+        public bool TryGetNextAvailableRarity(Rarity current, out Rarity next)
+        {
+            for (int i = (int)current + 1; i <= (int)Rarity.Legendary; i++)
+            {
+                var candidate = (Rarity)i;
+                if (!HasRarity(candidate))
+                    continue;
+
+                next = candidate;
+                return true;
+            }
+
+            next = current;
+            return false;
+        }
+
+        public IReadOnlyList<WeaponTag> GetTags()
+        {
+            return tags;
         }
     }
 }

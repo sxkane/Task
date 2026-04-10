@@ -17,11 +17,11 @@ namespace UI.CharacterSelectUI
         [SerializeField] private Button backButton;
 
         private readonly List<WeaponIconSlot> _slots = new();
-        private readonly List<WeaponLoadoutEntry> _starterWeapons = new();
-        private SelectionSlotBase<WeaponLoadoutEntry> _previewedSlot;
+        private readonly List<WeaponSelectionEntry> _starterWeapons = new();
+        private SelectionSlotBase<WeaponSelectionEntry> _previewedSlot;
         private PlayerData _currentPlayer;
         private Action _onBackRequested;
-        private Action<WeaponLoadoutEntry> _onWeaponConfirmed;
+        private Action<WeaponSelectionEntry> _onWeaponConfirmed;
 
         private void OnEnable()
         {
@@ -35,7 +35,7 @@ namespace UI.CharacterSelectUI
                 backButton.onClick.RemoveListener(HandleBackRequested);
         }
 
-        public void Configure(Action onBackRequested, Action<WeaponLoadoutEntry> onWeaponConfirmed)
+        public void Configure(Action onBackRequested, Action<WeaponSelectionEntry> onWeaponConfirmed)
         {
             _onBackRequested = onBackRequested;
             _onWeaponConfirmed = onWeaponConfirmed;
@@ -76,7 +76,7 @@ namespace UI.CharacterSelectUI
             if (player == null)
                 return;
 
-            foreach (var starterWeapon in player.GetStarterWeaponEntries())
+            foreach (var starterWeapon in player.GetStarterWeaponSelectionEntries())
             {
                 if (starterWeapon == null || !starterWeapon.IsValid())
                     continue;
@@ -88,7 +88,7 @@ namespace UI.CharacterSelectUI
             }
         }
 
-        private void HandleSlotHovered(SelectionSlotBase<WeaponLoadoutEntry> slot, WeaponLoadoutEntry data)
+        private void HandleSlotHovered(SelectionSlotBase<WeaponSelectionEntry> slot, WeaponSelectionEntry data)
         {
             _previewedSlot = slot;
             UpdateSelectionVisuals();
@@ -99,7 +99,7 @@ namespace UI.CharacterSelectUI
                 weaponInfoSlot.ShowWeapon(data);
         }
 
-        private void HandleSlotClicked(SelectionSlotBase<WeaponLoadoutEntry> slot, WeaponLoadoutEntry data)
+        private void HandleSlotClicked(SelectionSlotBase<WeaponSelectionEntry> slot, WeaponSelectionEntry data)
         {
             _previewedSlot = slot;
             UpdateSelectionVisuals();
@@ -130,7 +130,7 @@ namespace UI.CharacterSelectUI
                 slot.SetSelected(slot == _previewedSlot);
         }
 
-        private WeaponLoadoutEntry GetRandomStarterWeapon()
+        private WeaponSelectionEntry GetRandomStarterWeapon()
         {
             if (_starterWeapons.Count == 0)
                 return null;

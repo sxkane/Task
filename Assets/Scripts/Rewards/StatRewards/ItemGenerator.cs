@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Data;
@@ -120,12 +120,27 @@ namespace Rewards.StatRewards
             return new ShopItem()
             {
                 type = ShopItemType.Weapon,
-                weaponEntry = new WeaponLoadoutEntry
-                {
-                    weaponData = weapons[Random.Range(0, weapons.Count)],
-                    rarity = rarity
-                }
+                weaponSelectionEntry = BuildWeaponSelectionEntry(weapons, rarity)
             };
+        }
+
+        private static WeaponSelectionEntry BuildWeaponSelectionEntry(List<WeaponData> weapons, Rarity rarity)
+        {
+            if (weapons == null || weapons.Count == 0)
+                return null;
+
+            for (int i = 0; i < weapons.Count; i++)
+            {
+                var candidate = weapons[Random.Range(0, weapons.Count)];
+                if (candidate == null)
+                    continue;
+
+                var entry = candidate.CreateSelectionEntry(rarity);
+                if (entry != null && entry.IsValid())
+                    return entry;
+            }
+
+            return null;
         }
     }
 }

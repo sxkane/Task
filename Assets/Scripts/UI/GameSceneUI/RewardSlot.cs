@@ -28,15 +28,14 @@ namespace UI.GameSceneUI
             if (item.IsItem)
             {
                 nameText.text = item.GetDisplayName();
-                rewardText.text = item.itemData.price.ToString();
+                rewardText.text = item.GetPrice().ToString();
                 descriptionText.text = GameDataTextBuilder.BuildItemDescription(item.itemData);
             }
             else
             {
-                var weaponStats = item.weaponEntry.GetStats();
                 nameText.text = item.GetDisplayName();
-                rewardText.text = weaponStats.price.ToString();
-                descriptionText.text = GameDataTextBuilder.BuildWeaponDescription(item.weaponEntry);
+                rewardText.text = item.GetPrice().ToString();
+                descriptionText.text = GameDataTextBuilder.BuildWeaponDescription(item.GetWeaponEntry());
             }
             
             gameObject.SetActive(true);

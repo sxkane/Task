@@ -8,6 +8,7 @@ namespace Rewards.Shops
     public class ShopItem
     {
         public ShopItemType type;
+        public WeaponSelectionEntry weaponSelectionEntry;
         public WeaponLoadoutEntry weaponEntry;
         public ItemData itemData;
         public bool isLocked;
@@ -15,12 +16,20 @@ namespace Rewards.Shops
         public bool IsWeapon => type == ShopItemType.Weapon;
         public bool IsItem => type == ShopItemType.Item;
 
+        public WeaponLoadoutEntry GetWeaponEntry()
+        {
+            if (weaponSelectionEntry != null)
+                return weaponSelectionEntry;
+
+            return weaponEntry;
+        }
+
         public int GetPrice()
         {
             if (IsItem)
                 return itemData != null ? itemData.price : 0;
 
-            return weaponEntry != null ? weaponEntry.GetPrice() : 0;
+            return GetWeaponEntry() != null ? GetWeaponEntry().GetPrice() : 0;
         }
 
         public string GetDisplayName()
@@ -28,7 +37,7 @@ namespace Rewards.Shops
             if (IsItem)
                 return itemData != null ? itemData.GetDisplayName() : string.Empty;
 
-            return weaponEntry != null ? weaponEntry.GetDisplayName() : string.Empty;
+            return GetWeaponEntry() != null ? GetWeaponEntry().GetDisplayName() : string.Empty;
         }
 
         public string GetSummary()
@@ -36,7 +45,7 @@ namespace Rewards.Shops
             if (IsItem)
                 return itemData != null ? itemData.GetSummary() : string.Empty;
 
-            return weaponEntry != null ? weaponEntry.GetSummary() : string.Empty;
+            return GetWeaponEntry() != null ? GetWeaponEntry().GetSummary() : string.Empty;
         }
     }
 }

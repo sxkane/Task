@@ -5,7 +5,7 @@ using Weapons;
 
 namespace UI.CharacterSelectUI
 {
-    public class WeaponIconSlot : SelectionSlotBase<WeaponLoadoutEntry>
+    public class WeaponIconSlot : SelectionSlotBase<WeaponSelectionEntry>
     {
         [Header("Visuals")]
         [SerializeField] private Image weaponIcon;
@@ -21,7 +21,7 @@ namespace UI.CharacterSelectUI
                 return;
             }
 
-            weaponIcon.sprite = data?.weaponData != null ? data.weaponData.icon : null;
+            weaponIcon.sprite = data != null ? data.GetIcon() : null;
         }
     }
 }

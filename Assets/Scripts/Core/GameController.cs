@@ -28,7 +28,27 @@ namespace Core
         
         public GameFlowStateMachine StateMachine { get; private set; }
         public PlayerData SelectedPlayer { get; private set; }
-        public List<WeaponLoadoutEntry> SelectedWeapons { get; private set; }
+        public List<WeaponSelectionEntry> SelectedWeaponSelections { get; private set; }
+        public List<WeaponLoadoutEntry> SelectedWeapons
+        {
+            get
+            {
+                var entries = new List<WeaponLoadoutEntry>();
+                if (SelectedWeaponSelections == null)
+                    return entries;
+
+                for (int i = 0; i < SelectedWeaponSelections.Count; i++)
+                {
+                    var selection = SelectedWeaponSelections[i];
+                    if (selection == null || !selection.IsValid())
+                        continue;
+
+                    entries.Add(selection);
+                }
+
+                return entries;
+            }
+        }
         public GameInputHandler GameInputHandler { get; private set; }
 
         [Header("Game Manager")]
@@ -65,7 +85,14 @@ namespace Core
             GameInputHandler = GetComponent<GameInputHandler>();
 
             SelectedPlayer = GameRoot.Instance.CurrentSession.SelectedPlayer;
-            SelectedWeapons = GameRoot.Instance.CurrentSession.SelectedWeapons;
+            SelectedWeaponSelections = new List<WeaponSelectionEntry>();
+            foreach (var entry in GameRoot.Instance.CurrentSession.GetSelectedWeaponEntries())
+            {
+                if (entry == null || !entry.IsValid())
+                    continue;
+
+                SelectedWeaponSelections.Add(entry.ToSelectionEntry());
+            }
             
             EventBus.Subscribe<OnEnemyDiedEvent>(OnEnemyDied);
             

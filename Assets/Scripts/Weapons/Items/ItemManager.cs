@@ -40,6 +40,19 @@ namespace Weapons.Items
 
                 stat.AddModifier(modifier);
             }
+
+            if (item.effects != null)
+            {
+                var context = EffectExecutionContext.ForItem(_player, item);
+                foreach (var effect in item.effects)
+                {
+                    if (effect == null)
+                        continue;
+
+                    effect.Execute(context, EffectTrigger.OnItemAdded);
+                }
+            }
+
             _items.Add(item);
         }
 
@@ -69,9 +82,12 @@ namespace Weapons.Items
             EventBus.Publish(new OnItemsDisplay(_items));
         }
         
-        public void Initialize(PlayerManager player)
+        public void Configure(PlayerManager player)
         {
             _player = player.Player;
         }
+
+        // Legacy wrapper.
+        public void Initialize(PlayerManager player) => Configure(player);
     }
 }

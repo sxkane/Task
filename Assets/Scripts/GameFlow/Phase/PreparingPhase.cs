@@ -20,7 +20,8 @@ namespace GameFlow.Phase
             var selectedPlayer = Game.SelectedPlayer;
             Game.PlayerManager.Initialize(selectedPlayer);
             Game.WaveManager.Initialize(Game.PlayerManager);
-            Game.WeaponManager.Initialize(Game.PlayerManager, Game.WaveManager, Game.SelectedWeapons);
+            Game.WeaponManager.Configure(Game.PlayerManager, Game.WaveManager);
+            Game.WeaponManager.InitializeRun(Game.SelectedWeaponSelections);
             Game.ItemManager.Initialize(Game.PlayerManager);
             Game.RewardManager.Initialize(Game.PlayerManager, Game.WeaponManager, Game.ItemManager, Game.WaveManager);
             

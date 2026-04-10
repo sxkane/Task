@@ -16,6 +16,7 @@ namespace Weapons.FireBall
         [SerializeField] private float lifetime = 5f;
 
         private Transform _target;
+        private Weapon _ownerWeapon;
         private Vector3 _dir;
         private WeaponStats _stats;
         private float _bulletSpeed;
@@ -25,10 +26,11 @@ namespace Weapons.FireBall
         private PlayerController _player;
         private EnemyManager _enemyManager;
 
-        public void Init(WeaponStats stats, float bulletSpeed, PlayerController player, EnemyManager enemyManager)
+        public void Init(Weapon ownerWeapon, WeaponStats stats, float bulletSpeed, PlayerController player, EnemyManager enemyManager)
         {
             CancelInvoke();
 
+            _ownerWeapon = ownerWeapon;
             _stats = stats;
             _bulletSpeed = bulletSpeed;
             _player = player;
@@ -115,6 +117,14 @@ namespace Weapons.FireBall
                 damage = Mathf.RoundToInt(damage * _stats.critDamage);
             
             EventBus.Publish(new OnEnemyDamageRequestedEvent(enemy, damage));
+
+            var effectContext = EffectExecutionContext.ForWeaponHit(
+                _player,
+                _ownerWeapon,
+                _enemyManager,
+                enemy,
+                transform.position);
+            _ownerWeapon?.ExecuteEffects(EffectTrigger.OnWeaponHit, effectContext);
             ReturnToPool();
         }
     }

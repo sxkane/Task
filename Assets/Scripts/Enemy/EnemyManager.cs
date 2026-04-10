@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Player;
 using UnityEngine;
 
@@ -43,6 +43,25 @@ namespace Enemy
         {
             if (_enemies.Count == 0) return null;
             return _enemies[Random.Range(0, _enemies.Count)];
+        }
+
+        public void GetEnemiesInRadius(Vector2 center, float radius, List<EnemyController> results)
+        {
+            if (results == null)
+                return;
+
+            results.Clear();
+            float sqrRadius = radius * radius;
+
+            foreach (var enemy in _enemies)
+            {
+                if (enemy == null || !enemy.gameObject.activeInHierarchy || !enemy.Stats.IsAlive)
+                    continue;
+
+                float sqrDist = ((Vector2)enemy.transform.position - center).sqrMagnitude;
+                if (sqrDist <= sqrRadius)
+                    results.Add(enemy);
+            }
         }
 
         public void ClearAllEnemies()

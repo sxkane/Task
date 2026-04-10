@@ -20,7 +20,7 @@ namespace UI.CharacterSelectUI
 
         private void Start()
         {
-            characterSelectionPage.Configure(gameDatabase.players, HandleCharacterConfirmed, HandleRandomPlayer);
+            characterSelectionPage.Configure(gameDatabase.GetPlayerEntries(), HandleCharacterConfirmed, HandleRandomPlayer);
             weaponSelectionPage.Configure(HandleBackToCharacterSelection, HandleWeaponConfirmed);
             OpenCharacterSelectionPage();
         }
@@ -31,7 +31,7 @@ namespace UI.CharacterSelectUI
             OpenWeaponSelectionPage(player);
         }
 
-        private void HandleWeaponConfirmed(WeaponLoadoutEntry weapon)
+        private void HandleWeaponConfirmed(WeaponSelectionEntry weapon)
         {
             if (_confirmedPlayer == null)
                 return;
@@ -41,10 +41,11 @@ namespace UI.CharacterSelectUI
         
         private void HandleRandomPlayer()
         {
-            if (gameDatabase.players == null || gameDatabase.players.Count == 0)
+            var players = gameDatabase.GetPlayerEntries();
+            if (players.Count == 0)
                 return;
 
-            _confirmedPlayer = gameDatabase.players[UnityEngine.Random.Range(0, gameDatabase.players.Count)];
+            _confirmedPlayer = players[UnityEngine.Random.Range(0, players.Count)];
 
             OpenWeaponSelectionPage(_confirmedPlayer);
         }
@@ -68,16 +69,16 @@ namespace UI.CharacterSelectUI
             weaponSelectionPage.SetPageVisible(true);
         }
 
-        private static void StartGame(PlayerData player, WeaponLoadoutEntry weapon)
+        private static void StartGame(PlayerData player, WeaponSelectionEntry weapon)
         {
-            var selectedWeapons = new List<WeaponLoadoutEntry>();
+            var selectedWeapons = new List<WeaponSelectionEntry>();
             if (weapon != null)
                 selectedWeapons.Add(weapon);
 
             GameRoot.Instance.StartGame(new GameSession
             {
                 SelectedPlayer = player,
-                SelectedWeapons = selectedWeapons
+                SelectedWeaponSelections = selectedWeapons
             });
         }
     }

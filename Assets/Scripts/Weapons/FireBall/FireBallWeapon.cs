@@ -1,4 +1,4 @@
-﻿using Enemy;
+using Enemy;
 using ObjectPool;
 using Player;
 using Stats;
@@ -14,10 +14,16 @@ namespace Weapons.FireBall
         private float _cooldown;
         private float _timer;
 
-        public override void Init(PlayerController player, int weaponID, WeaponStats stats, EnemyManager enemyManager)
+        public override void Configure(PlayerController player, WeaponLoadoutEntry entry, EnemyManager enemyManager)
         {
-            base.Init(player, weaponID, stats, enemyManager);
+            base.Configure(player, entry, enemyManager);
+            _cooldown = Stats.attackSpeed;
+        }
 
+        public override void InitializeRun(WeaponLoadoutEntry runtimeEntry = null)
+        {
+            base.InitializeRun(runtimeEntry);
+            _timer = 0f;
             _cooldown = Stats.attackSpeed;
         }
 
@@ -35,12 +41,14 @@ namespace Weapons.FireBall
 
         private void Attack()
         {
+            ExecuteEffects(EffectTrigger.OnWeaponAttack);
+
             var bulletObj = PoolManager.Instance.Spawn(
                 trianglePrefab,
                 transform.position, 
                 transform.rotation);
             bulletObj.GetComponent<FireBallBullet>()
-                .Init(Stats, bulletSpeed, Player, EnemyManager);
+                .Init(this, Stats, bulletSpeed, Player, EnemyManager);
         }
     }
 }
