@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9339c23d374f44a2a570768b6f59ddec, type: 3}
   m_Name: Red
   m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerData
-  playerID: 0
+  playerID: 1
   playerName: Red
   playerIcon: {fileID: 6257046027232108077, guid: 19d5e7c24f5f4e24b8cd30a52bad94e0, type: 3}
+  summary: 
   playerStats:
     MaxHpStat:
       baseValue: 10
@@ -51,6 +52,4 @@ MonoBehaviour:
   playerPrefab: {fileID: 8719565624045311067, guid: 5f153fb2ca7b1454692878f94df56a76, type: 3}
   starterWeapons:
   - weaponData: {fileID: 11400000, guid: b51c1ca2b118a544dbe9f2346ae356af, type: 2}
-    rarity: 0
-  - weaponData: {fileID: 11400000, guid: cf681188ae9fd6a408e548215c248a9b, type: 2}
     rarity: 0

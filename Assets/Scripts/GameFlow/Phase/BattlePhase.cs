@@ -16,49 +16,52 @@ namespace GameFlow.Phase
             Game.Resume();
             Game.EnablePlayerInput();
             Game.GameInputHandler?.EnableInput();
-            
-            EventScribe();
+
+            SubscribeEvents();
 
             if (Game.StateMachine.PreviousPhase is PausePhase)
-                Game.WaveManager.ResumeWave();
+                Game.WaveManager.ResumePhase();
             else
-                Game.WaveManager.StartNextWave();
+                Game.WaveManager.BeginPhase();
 
-            Game.WeaponManager.Activate();
+            Game.WeaponManager.BeginPhase();
         }
 
         public override void Exit()
         {
             base.Exit();
-            
-            EventUnScribe();
-            Game.WaveManager.Deactivate();
-            Game.WeaponManager.Deactivate();
+
+            UnsubscribeEvents();
+            Game.WaveManager.EndPhase();
+            Game.WeaponManager.EndPhase();
         }
 
-        private void EventScribe()
+        private void SubscribeEvents()
         {
             Game.WaveManager.OnWaveCompleted += WaveComplete;
             EventBus.Subscribe<OnPlayerDiedEvent>(OnPlayerDied);
         }
 
-        private void EventUnScribe()
+        private void UnsubscribeEvents()
         {
             Game.WaveManager.OnWaveCompleted -= WaveComplete;
             EventBus.Unsubscribe<OnPlayerDiedEvent>(OnPlayerDied);
         }
-        
+
         private void WaveComplete(bool isFinalWave)
         {
             if (!isFinalWave)
-                Game.ChangeState(GamePhaseType.RewardAndShop);
+                if (Game.UpgradeManager != null && Game.UpgradeManager.HasPendingSelections())
+                    Game.ChangeState(GamePhaseType.Upgrade);
+                else
+                    Game.ChangeState(GamePhaseType.Shop);
             else
                 Game.ChangeState(GamePhaseType.GameOver);
         }
-        
-        private void OnPlayerDied(OnPlayerDiedEvent e)
+
+        private void OnPlayerDied(OnPlayerDiedEvent eventData)
         {
-            if (Game.PlayerManager?.Player == e.Target)
+            if (Game.PlayerManager?.Player == eventData.Target)
                 Game.ChangeState(GamePhaseType.GameOver);
         }
     }

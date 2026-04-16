@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Enemy;
+using Items;
 using Player;
 using Waves;
 using Weapons;
@@ -173,12 +174,12 @@ namespace Data
                 }
 
                 if (!wave.IsValid())
-                    issues.Add(new GameDataValidationIssue("Wave", wave.GetValidationSourceName(), "Invalid identity, duration, or spawn interval."));
+                    issues.Add(new GameDataValidationIssue("Wave", wave.GetValidationSourceName(), "Invalid identity, duration, or enemy pool configuration."));
 
                 if (!usedIds.Add(wave.GetDataId()))
                     issues.Add(new GameDataValidationIssue("Wave", wave.GetValidationSourceName(), $"Duplicate waveID: {wave.GetDataId()}."));
 
-                if (wave.enemies == null || wave.enemies.Length == 0)
+                if (wave.GetDefaultPoolCount() <= 0)
                     issues.Add(new GameDataValidationIssue("Wave", wave.GetValidationSourceName(), "No enemy entries configured."));
             }
         }

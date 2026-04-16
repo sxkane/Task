@@ -5,6 +5,7 @@ using ObjectPool;
 using Player;
 using Stats;
 using UnityEngine;
+using Weapons.Effects;
 
 namespace Weapons.FireBall
 {

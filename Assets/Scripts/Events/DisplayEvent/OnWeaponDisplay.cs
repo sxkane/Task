@@ -5,9 +5,9 @@ namespace Events.DisplayEvent
 {
     public class OnWeaponDisplay
     {
-        public List<WeaponLoadoutEntry> Weapons { get; private set; }
+        public List<WeaponEntry> Weapons { get; private set; }
 
-        public OnWeaponDisplay(List<WeaponLoadoutEntry> weapons)
+        public OnWeaponDisplay(List<WeaponEntry> weapons)
         {
             Weapons = weapons;
         }

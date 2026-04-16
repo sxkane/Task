@@ -5,12 +5,12 @@ using Weapons;
 
 namespace UI.CharacterSelectUI
 {
-    public class WeaponIconSlot : SelectionSlotBase<WeaponSelectionEntry>
+    public class WeaponIconSlot : SelectionSlotBase<WeaponEntry>
     {
         [Header("Visuals")]
         [SerializeField] private Image weaponIcon;
 
-        protected override void RefreshVisuals(WeaponLoadoutEntry data, bool isRandomSlot)
+        protected override void RefreshVisuals(WeaponEntry data, bool isRandomSlot)
         {
             if (weaponIcon == null)
                 return;

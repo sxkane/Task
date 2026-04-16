@@ -5,10 +5,14 @@ namespace Core
 {
     public class GameInputHandler : MonoBehaviour
     {
+        #region Runtime
+
         private InputAction _pauseAction;
         private bool _pauseRequested;
         private bool _isInitialized;
         private bool _isInputEnabled;
+
+        #endregion
 
         private void Update()
         {
@@ -19,13 +23,29 @@ namespace Core
                 _pauseRequested = true;
         }
 
-        public void Initialize()
+        #region Lifecycle
+
+        public void Configure(GameController gameController)
+        {
+        }
+
+        public void InitializeRun()
         {
             _pauseAction = InputSystem.actions.FindAction("Pause");
             _isInitialized = _pauseAction != null;
             _isInputEnabled = _isInitialized;
             _pauseRequested = false;
         }
+
+        public void ResetRun()
+        {
+            _pauseRequested = false;
+            _isInputEnabled = false;
+            _isInitialized = false;
+            _pauseAction = null;
+        }
+
+        #endregion
 
         public bool ConsumePauseRequest()
         {

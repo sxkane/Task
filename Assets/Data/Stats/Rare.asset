@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e75432782862480291dade3459bea99d, type: 3}
+  m_Name: Rare
+  m_EditorClassIdentifier: Assembly-CSharp::UI.GameSceneUI.IconSlots.RarityVisual
+  rarity: 1
+  topColor: {r: 0.3019608, g: 0.6509804, b: 1, a: 1}
+  bottomColor: {r: 0, g: 0, b: 0, a: 1}
+  useGlow: 0
+  glowColor: {r: 0, g: 0, b: 0, a: 0}
+  glowIntensity: 1

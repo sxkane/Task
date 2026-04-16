@@ -4,6 +4,7 @@ using Enemy;
 using Events;
 using Events.EnemyEvents;
 using UnityEngine;
+using Weapons.Effects;
 
 namespace Weapons.FireBall
 {
@@ -72,7 +73,7 @@ namespace Weapons.FireBall
 
         public override string BuildDescription()
         {
-            return $"Hit explodes in {explosionRadius:0.#}m, deals {explosionDamage} and burns by rarity profile";
+            return $"命中时产生 {explosionRadius:0.#} 米范围爆炸，造成 {explosionDamage} 伤害，并附加随稀有度变化的燃烧效果";
         }
 
         private BurnProfile ResolveBurnProfile(Weapon weapon)

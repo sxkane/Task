@@ -2,6 +2,7 @@
 using Events.EnemyEvents;
 using Events.PlayerEvents;
 using UI.GameSceneUI;
+using UI.GameSceneUI.VFX;
 using UnityEngine;
 
 namespace VFX

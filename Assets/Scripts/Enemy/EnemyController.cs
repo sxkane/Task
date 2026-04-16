@@ -4,6 +4,7 @@ using Enemy.EnemyStates;
 using Events;
 using Events.EnemyEvents;
 using ObjectPool;
+using TMPro;
 using UnityEngine;
 
 namespace Enemy
@@ -36,7 +37,7 @@ namespace Enemy
         private EnemyManager _enemyManager;
         private bool _initialize;
 
-        public void Initialize(Transform target, EnemyManager enemyManager)
+        public void Initialize(Transform target, EnemyManager enemyManager, int currentWave)
         {
             // States
             Machine = new EnemyStateMachine();
@@ -60,7 +61,7 @@ namespace Enemy
             // Initialize
             _enemyManager.Register(this);
             
-            Stats.Initialize(template);
+            Stats.Initialize(template, currentWave);
             Attack.Initialize(this);
             Visual.Initialize(this);
             Function.InitializeAnimationFunction(this);

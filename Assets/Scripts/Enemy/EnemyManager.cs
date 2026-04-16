@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Player;
 using UnityEngine;
 
 namespace Enemy
@@ -8,9 +7,25 @@ namespace Enemy
     {
         private readonly List<EnemyController> _enemies = new();
 
+        public int AliveEnemyCount
+        {
+            get
+            {
+                var count = 0;
+                for (var i = 0; i < _enemies.Count; i++)
+                {
+                    var enemy = _enemies[i];
+                    if (enemy != null && enemy.gameObject.activeInHierarchy && enemy.Stats != null && enemy.Stats.IsAlive)
+                        count++;
+                }
+
+                return count;
+            }
+        }
+
         public void Register(EnemyController enemy)
         {
-            if (!_enemies.Contains(enemy))
+            if (enemy != null && !_enemies.Contains(enemy))
                 _enemies.Add(enemy);
         }
 
@@ -19,29 +34,32 @@ namespace Enemy
             _enemies.Remove(enemy);
         }
 
-        public EnemyController GetNearestEnemy(Vector2 pos)
+        public EnemyController GetNearestEnemy(Vector2 position)
         {
             EnemyController target = null;
-            float distance = float.MaxValue;
+            var distance = float.MaxValue;
 
-            foreach (var e in _enemies)
+            foreach (var enemy in _enemies)
             {
-                if (e == null) continue;
+                if (enemy == null || !enemy.gameObject.activeInHierarchy || enemy.Stats == null || !enemy.Stats.IsAlive)
+                    continue;
 
-                float dist = (pos - (Vector2)e.transform.position).sqrMagnitude;
-                if (dist < distance)
+                var currentDistance = (position - (Vector2)enemy.transform.position).sqrMagnitude;
+                if (currentDistance < distance)
                 {
-                    target = e;
-                    distance = dist;
+                    target = enemy;
+                    distance = currentDistance;
                 }
             }
 
             return target;
         }
-        
+
         public EnemyController GetRandomEnemy()
         {
-            if (_enemies.Count == 0) return null;
+            if (_enemies.Count == 0)
+                return null;
+
             return _enemies[Random.Range(0, _enemies.Count)];
         }
 
@@ -51,14 +69,14 @@ namespace Enemy
                 return;
 
             results.Clear();
-            float sqrRadius = radius * radius;
+            var sqrRadius = radius * radius;
 
             foreach (var enemy in _enemies)
             {
-                if (enemy == null || !enemy.gameObject.activeInHierarchy || !enemy.Stats.IsAlive)
+                if (enemy == null || !enemy.gameObject.activeInHierarchy || enemy.Stats == null || !enemy.Stats.IsAlive)
                     continue;
 
-                float sqrDist = ((Vector2)enemy.transform.position - center).sqrMagnitude;
+                var sqrDist = ((Vector2)enemy.transform.position - center).sqrMagnitude;
                 if (sqrDist <= sqrRadius)
                     results.Add(enemy);
             }
@@ -66,9 +84,10 @@ namespace Enemy
 
         public void ClearAllEnemies()
         {
-            foreach (var e in _enemies)
+            foreach (var enemy in _enemies)
             {
-                e.TakeDamage(100000);
+                if (enemy != null && enemy.gameObject.activeInHierarchy && enemy.Stats != null && enemy.Stats.IsAlive)
+                    enemy.TakeDamage(100000f);
             }
         }
     }

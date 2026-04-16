@@ -1,4 +1,3 @@
-using System;
 using Core;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,7 +7,9 @@ namespace UI.GameSceneUI
     public class ResultPanel : MonoBehaviour
     {
         [SerializeField] private Button button;
-        
+
+        private GameRoot _gameRoot;
+
         private void OnEnable()
         {
             button.onClick.AddListener(OnBackButtonClick);
@@ -19,9 +20,14 @@ namespace UI.GameSceneUI
             button.onClick.RemoveListener(OnBackButtonClick);
         }
 
+        public void Configure(GameRoot gameRoot)
+        {
+            _gameRoot = gameRoot;
+        }
+
         public void OnBackButtonClick()
         {
-            GameRoot.Instance.ReturnToMainMenu();
+            _gameRoot?.ReturnToMainMenu();
         }
     }
 }

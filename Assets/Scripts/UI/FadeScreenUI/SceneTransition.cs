@@ -7,15 +7,15 @@ namespace UI.FadeScreenUI
     {
         [SerializeField] private FadeScreen fadeScreen;
 
-        public IEnumerator FadeOut(float duration)
+        public IEnumerator FadeIn(float duration)
         {
-            fadeScreen.FadeOut();
+            fadeScreen.FadeIn(duration);
             yield return new WaitForSecondsRealtime(duration);
         }
 
-        public IEnumerator FadeIn(float duration)
+        public IEnumerator FadeOut(float duration)
         {
-            fadeScreen.FadeIn();
+            fadeScreen.FadeOut(duration);
             yield return new WaitForSecondsRealtime(duration);
         }
     }

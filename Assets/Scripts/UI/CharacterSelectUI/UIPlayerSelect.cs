@@ -11,18 +11,25 @@ namespace UI.CharacterSelectUI
     {
         [Header("Pages")]
         [SerializeField] private CharacterSelectionPage characterSelectionPage;
+
         [SerializeField] private WeaponSelectionPage weaponSelectionPage;
 
         [Header("Data")]
         [SerializeField] private GameDatabase gameDatabase;
 
         private PlayerData _confirmedPlayer;
+        private bool _isConfigured;
 
-        private void Start()
+        private void OnEnable()
         {
-            characterSelectionPage.Configure(gameDatabase.GetPlayerEntries(), HandleCharacterConfirmed, HandleRandomPlayer);
+            if (_isConfigured)
+                return;
+
+            characterSelectionPage.Configure(gameDatabase.GetPlayerEntries(), HandleCharacterConfirmed,
+                HandleRandomPlayer);
             weaponSelectionPage.Configure(HandleBackToCharacterSelection, HandleWeaponConfirmed);
             OpenCharacterSelectionPage();
+            _isConfigured = true;
         }
 
         private void HandleCharacterConfirmed(PlayerData player)
@@ -31,21 +38,21 @@ namespace UI.CharacterSelectUI
             OpenWeaponSelectionPage(player);
         }
 
-        private void HandleWeaponConfirmed(WeaponSelectionEntry weapon)
+        private void HandleWeaponConfirmed(WeaponEntry weapon)
         {
             if (_confirmedPlayer == null)
                 return;
 
             StartGame(_confirmedPlayer, weapon);
         }
-        
+
         private void HandleRandomPlayer()
         {
-            var players = gameDatabase.GetPlayerEntries();
+            List<PlayerData> players = gameDatabase.GetPlayerEntries();
             if (players.Count == 0)
                 return;
 
-            _confirmedPlayer = players[UnityEngine.Random.Range(0, players.Count)];
+            _confirmedPlayer = players[Random.Range(0, players.Count)];
 
             OpenWeaponSelectionPage(_confirmedPlayer);
         }
@@ -69,17 +76,9 @@ namespace UI.CharacterSelectUI
             weaponSelectionPage.SetPageVisible(true);
         }
 
-        private static void StartGame(PlayerData player, WeaponSelectionEntry weapon)
+        private static void StartGame(PlayerData player, WeaponEntry weapon)
         {
-            var selectedWeapons = new List<WeaponSelectionEntry>();
-            if (weapon != null)
-                selectedWeapons.Add(weapon);
-
-            GameRoot.Instance.StartGame(new GameSession
-            {
-                SelectedPlayer = player,
-                SelectedWeaponSelections = selectedWeapons
-            });
+            GameRoot.Instance.StartGame(GameSession.Create(player, new List<WeaponEntry> { weapon }));
         }
     }
 }

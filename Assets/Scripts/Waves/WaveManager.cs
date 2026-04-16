@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core;
 using Enemy;
 using Events;
 using Events.WaveEvents;
@@ -12,49 +13,120 @@ namespace Waves
 {
     public class WaveManager : MonoBehaviour
     {
+        #region Inspector
+
         [Header("Wave Settings")]
         [SerializeField] private List<WaveConfig> waves = new();
-        [SerializeField] private float radius;
-        
-        private Transform _player;
-        public EnemyManager EnemyManager;
-        
-        private float _spawnTimer;
+        [SerializeField] private float spawnRadius = 14f;
+
+        #endregion
+
+        #region Runtime
+
+        private GameSession _session;
+        private PlayerManager _playerManager;
+        private PoolManager _poolManager;
+        private float _spawnProgress;
         private float _timer;
         private int _lastSecond = -1;
-        
-        private PoolManager pool;
-        
-        public int CurrentWave { get; private set; }
         private bool _isActive;
-        
-        private readonly List<int> _randomEnemyIndex = new();
-        
+        private bool _bossSpawned;
+        private readonly List<int> _spawnWeightBuffer = new();
+
+        public EnemyManager EnemyManager { get; private set; }
+        public int CurrentWave { get; private set; }
         public Action<bool> OnWaveCompleted;
+
+        #endregion
 
         private void Update()
         {
             if (!_isActive)
                 return;
 
-            if (CurrentWave >= waves.Count)
+            if (CurrentWave < 0 || CurrentWave >= waves.Count)
             {
                 _isActive = false;
                 return;
             }
 
-            WaveConfig wave = waves[CurrentWave];
-            
+            var wave = waves[CurrentWave];
             UpdateWaveTimer(wave);
+            if (!_isActive)
+                return;
+
+            UpdateBossSpawn(wave);
             UpdateSpawner(wave);
+        }
+
+        public void Configure(GameSession session, PlayerManager playerManager)
+        {
+            _session = session;
+            _playerManager = playerManager;
+            _poolManager = PoolManager.Instance;
+        }
+
+        public void InitializeRun()
+        {
+            EnemyManager = new EnemyManager();
+            _poolManager?.Configure(_session);
+            CurrentWave = -1;
+            _timer = 0f;
+            _spawnProgress = 0f;
+            _lastSecond = -1;
+            _isActive = false;
+            _bossSpawned = false;
+            _spawnWeightBuffer.Clear();
+        }
+
+        public void ResetRun()
+        {
+            EndPhase();
+            EnemyManager?.ClearAllEnemies();
+            EnemyManager = null;
+            _poolManager?.ResetRun();
+            CurrentWave = -1;
+            _timer = 0f;
+            _spawnProgress = 0f;
+            _lastSecond = -1;
+            _bossSpawned = false;
+            _spawnWeightBuffer.Clear();
+        }
+
+        public void BeginPhase()
+        {
+            StartNextWave();
+        }
+
+        public void EndPhase()
+        {
+            _isActive = false;
+        }
+
+        public void ResumePhase()
+        {
+            if (CurrentWave < 0 || CurrentWave >= waves.Count)
+                return;
+
+            _isActive = true;
+        }
+
+        private void StartNextWave()
+        {
+            CurrentWave++;
+            _timer = 0f;
+            _spawnProgress = 0f;
+            _lastSecond = -1;
+            _bossSpawned = false;
+            _isActive = true;
         }
 
         private void UpdateWaveTimer(WaveConfig wave)
         {
             _timer += Time.deltaTime;
-            
-            float remaining = wave.duration - _timer;
-            int currentSecond = Mathf.CeilToInt(remaining);
+
+            var remaining = Mathf.Max(0f, wave.duration - _timer);
+            var currentSecond = Mathf.CeilToInt(remaining);
             if (currentSecond != _lastSecond)
             {
                 _lastSecond = currentSecond;
@@ -63,89 +135,96 @@ namespace Waves
 
             if (_timer < wave.duration)
                 return;
-            
+
             _isActive = false;
-
-            bool isLastWave = CurrentWave >= waves.Count - 1;
-
+            var isLastWave = CurrentWave >= waves.Count - 1;
             OnWaveCompleted?.Invoke(isLastWave);
         }
-        
+
         private void UpdateSpawner(WaveConfig wave)
         {
-            _spawnTimer += Time.deltaTime;
-
-            if (_spawnTimer >= wave.spawnInterval)
-            {
-                _spawnTimer = 0;
-                SpawnEnemy(wave);
-            }
-        }
-        
-        private void SpawnEnemy(WaveConfig wave)
-        {
-            Vector2 pos = (Vector2)_player.position +
-                          Random.insideUnitCircle.normalized * radius;
-
-            GameObject prefab = GetRandomEnemy(wave);
-            
-            var enemy = pool.Spawn(prefab, pos, Quaternion.identity);
-            
-            enemy.GetComponent<EnemyController>().Initialize(_player, EnemyManager);
-        }
-
-        private GameObject GetRandomEnemy(WaveConfig wave)
-        {
-            int index = _randomEnemyIndex[Random.Range(0, _randomEnemyIndex.Count)];
-            return wave.enemies[index].enemyPrefab;
-        }
-
-        private void BuildRandomPool(int waveIndex)
-        {
-            _randomEnemyIndex.Clear();
-
-            if (waveIndex >= waves.Count)
+            var normalizedTime = GetNormalizedWaveTime(wave);
+            var spawnRate = wave.EvaluateSpawnRate(normalizedTime);
+            if (spawnRate <= 0f)
                 return;
 
-            var enemies = waves[waveIndex].enemies;
-
-            for (int i = 0; i < enemies.Length; i++)
-            {
-                for (int j = 0; j < enemies[i].weight; j++)
-                    _randomEnemyIndex.Add(i);
-            }
-        }
-        
-        public void Initialize(PlayerManager playerManager)
-        {   
-            _player = playerManager.Player.transform;
-            EnemyManager = new EnemyManager();
-            CurrentWave = -1;
-            
-            pool = PoolManager.Instance;
-        }
-
-        public void StartNextWave()
-        {
-            CurrentWave++;
-            _timer = 0;
-            _spawnTimer = 0;
-            _lastSecond = -1;
-            BuildRandomPool(CurrentWave);
-            _isActive = true;
-        }
-
-        public void ResumeWave()
-        {
-            if (CurrentWave < 0 || CurrentWave >= waves.Count)
+            var maxEnemiesAlive = wave.EvaluateMaxEnemiesAlive(normalizedTime);
+            if (EnemyManager != null && EnemyManager.AliveEnemyCount >= maxEnemiesAlive)
                 return;
 
-            _isActive = true;
+            _spawnProgress += spawnRate * Time.deltaTime;
+
+            while (_spawnProgress >= 1f)
+            {
+                if (EnemyManager != null && EnemyManager.AliveEnemyCount >= maxEnemiesAlive)
+                    break;
+
+                if (!SpawnEnemyFromPool(wave, normalizedTime))
+                    break;
+
+                _spawnProgress -= 1f;
+            }
         }
 
-        public void Deactivate()
+        private void UpdateBossSpawn(WaveConfig wave)
         {
-            _isActive = false;
+            var normalizedTime = GetNormalizedWaveTime(wave);
+            if (!wave.ShouldSpawnBoss(normalizedTime, _bossSpawned))
+                return;
+
+            if (wave.boss == null || wave.boss.bossPrefab == null)
+                return;
+
+            var bossCount = Mathf.Max(1, wave.boss.spawnCount);
+            for (var i = 0; i < bossCount; i++)
+                SpawnEnemy(wave.boss.bossPrefab, $"{wave.boss.bossPrefab.name}_Boss");
+
+            _bossSpawned = true;
+        }
+
+        private bool SpawnEnemyFromPool(WaveConfig wave, float normalizedTime)
+        {
+            var currentPool = wave.GetCurrentEnemyPool(normalizedTime);
+            if (currentPool == null || currentPool.Count == 0)
+                return false;
+
+            _spawnWeightBuffer.Clear();
+            for (var i = 0; i < currentPool.Count; i++)
+            {
+                var entry = currentPool[i];
+                if (entry == null || entry.enemyPrefab == null || entry.weight <= 0)
+                    continue;
+
+                for (var count = 0; count < entry.weight; count++)
+                    _spawnWeightBuffer.Add(i);
+            }
+
+            if (_spawnWeightBuffer.Count == 0)
+                return false;
+
+            var randomIndex = _spawnWeightBuffer[Random.Range(0, _spawnWeightBuffer.Count)];
+            var prefab = currentPool[randomIndex].enemyPrefab;
+            SpawnEnemy(prefab, prefab.name);
+            return true;
+        }
+
+        private void SpawnEnemy(GameObject prefab, string groupName)
+        {
+            var player = _playerManager != null ? _playerManager.Player : null;
+            if (player == null || prefab == null || _poolManager == null)
+                return;
+
+            var position = (Vector2)player.transform.position + Random.insideUnitCircle.normalized * spawnRadius;
+            var groupRoot = _session?.GetOrCreateGroupRoot(GameSessionRootType.Enemy, groupName);
+            var enemyObject = _poolManager.Spawn(prefab, position, Quaternion.identity, groupRoot);
+            enemyObject.GetComponent<EnemyController>().Initialize(player.transform, EnemyManager, CurrentWave);
+        }
+
+        private float GetNormalizedWaveTime(WaveConfig wave)
+        {
+            return wave == null || wave.duration <= 0f
+                ? 0f
+                : Mathf.Clamp01(_timer / wave.duration);
         }
     }
 }

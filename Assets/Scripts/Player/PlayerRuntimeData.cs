@@ -8,6 +8,7 @@ namespace Player
         public int Level { get; private set; }
         public int Coins { get; private set; }
         public int Experience { get; private set; }
+        public int PendingUpgradeSelections { get; private set; }
         public int NeedExperience => GetNeedExp(Level);
         public int RefreshCost { get; private set; } = 1;
         
@@ -15,16 +16,19 @@ namespace Player
         public event Action<int, int> OnExpChanged; 
         public event Action<int> OnLevelUp;
         public event Action<int> OnRefreshCostChanged;
+        public event Action<int> OnPendingUpgradeSelectionsChanged;
         
         public void InitializeRun()
         {
             Level = 0;
             Coins = 0;
             Experience = 0;
+            PendingUpgradeSelections = 0;
             RefreshCost = 1;
 
             OnCoinsChanged?.Invoke(Coins);
             OnExpChanged?.Invoke(Experience, NeedExperience);
+            OnPendingUpgradeSelectionsChanged?.Invoke(PendingUpgradeSelections);
             OnRefreshCostChanged?.Invoke(RefreshCost);
         }
 
@@ -80,10 +84,27 @@ namespace Player
             {
                 Experience -= GetNeedExp(Level);
                 Level++;
+                PendingUpgradeSelections++;
                 OnLevelUp?.Invoke(Level);
+                OnPendingUpgradeSelectionsChanged?.Invoke(PendingUpgradeSelections);
             }
 
             OnExpChanged?.Invoke(Experience, NeedExperience);
+        }
+
+        public bool HasPendingUpgradeSelections()
+        {
+            return PendingUpgradeSelections > 0;
+        }
+
+        public bool TryConsumePendingUpgradeSelection()
+        {
+            if (PendingUpgradeSelections <= 0)
+                return false;
+
+            PendingUpgradeSelections--;
+            OnPendingUpgradeSelectionsChanged?.Invoke(PendingUpgradeSelections);
+            return true;
         }
     }
 }

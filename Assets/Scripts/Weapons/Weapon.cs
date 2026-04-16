@@ -1,44 +1,55 @@
 using Enemy;
 using Player;
 using UnityEngine;
+using Weapons.Effects;
 
 namespace Weapons
 {
     public abstract class Weapon : MonoBehaviour
     {
-        protected PlayerController Player;
-        public WeaponLoadoutEntry Entry { get; private set; }
+        protected PlayerController Player { get; private set; }
+        public WeaponEntry Entry { get; private set; }
         public int WeaponID { get; private set; }
         public WeaponStats Stats { get; private set; }
         public EnemyManager EnemyManager { get; private set; }
+        protected Transform ProjectileRoot { get; private set; }
+        public Vector2 Offset { get; private set; } = Vector2.zero;
 
         private bool _isActive;
         
-        public bool BeginPhase() => _isActive = true;
-        public bool EndPhase() => _isActive = false;
+        public void SetOffset(Vector2 offset)
+        {
+            Offset = offset;
+            transform.position = 
+                Player.transform.position + (Vector3)offset;
+        }
+        
+        protected virtual void Update()
+        {
+            if (!_isActive)
+                return;
+        }
 
-        public virtual void Configure(PlayerController player, WeaponLoadoutEntry entry, EnemyManager enemyManager)
+        #region Weapon Loop
+
+        public virtual void Configure(PlayerController player, WeaponEntry entry, EnemyManager enemyManager, Transform projectileRoot)
         {
             Player = player;
             Entry = entry;
-            WeaponID = entry != null ? entry.GetDataId() : -1;
-            Stats = entry != null ? entry.GetStats() : null;
+            WeaponID = entry?.GetDataId() ?? -1;
+            Stats = entry?.GetStats();
             EnemyManager = enemyManager;
+            ProjectileRoot = projectileRoot;
         }
 
-        public virtual void InitializeRun(WeaponLoadoutEntry runtimeEntry = null)
+        public virtual void InitializeRun(WeaponEntry entry = null)
         {
-            if (runtimeEntry != null)
+            if (entry != null)
             {
-                Entry = runtimeEntry;
-                WeaponID = runtimeEntry.GetDataId();
-                Stats = runtimeEntry.GetStats();
+                Entry = entry;
+                WeaponID = entry.GetDataId();
+                Stats = entry.GetStats();
             }
-        }
-
-        public virtual void InitializeRun(WeaponRuntimeEntry runtimeEntry)
-        {
-            InitializeRun(runtimeEntry as WeaponLoadoutEntry);
         }
 
         public virtual void ResetRun()
@@ -46,20 +57,17 @@ namespace Weapons
             _isActive = false;
         }
 
-        // Legacy wrappers to keep existing callers safe.
-        public virtual void Init(PlayerController player, WeaponLoadoutEntry entry, EnemyManager enemyManager)
+        public virtual void CleanupRun()
         {
-            Configure(player, entry, enemyManager);
-            InitializeRun(entry);
+            _isActive = false;
         }
-        public bool Activate() => BeginPhase();
-        public bool Deactivate() => EndPhase();
-        
-        protected virtual void Update()
-        {
-            if (!_isActive)
-                return;
-        }
+
+        public bool BeginPhase() => _isActive = true;
+        public bool EndPhase() => _isActive = false;
+
+        #endregion
+
+        #region Weapon Upgrade
 
         public void Upgrade()
         {
@@ -79,11 +87,9 @@ namespace Weapons
             return Entry != null && Entry.CanUpgrade();
         }
 
-        public void SetOffset(Vector2 offset)
-        {
-            transform.position = 
-                Player.transform.position + (Vector3)offset;
-        }
+        #endregion
+
+        #region Weapon Effects
 
         public void ExecuteEffects(EffectTrigger trigger)
         {
@@ -103,5 +109,7 @@ namespace Weapons
                 effect.Execute(context, trigger);
             }
         }
+        
+        #endregion
     }
 }

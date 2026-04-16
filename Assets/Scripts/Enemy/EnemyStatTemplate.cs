@@ -1,9 +1,10 @@
+using Data;
 using UnityEngine;
 
 namespace Enemy
 {
     [CreateAssetMenu(menuName = "Game/Enemy Template")]
-    public class EnemyStatTemplate : ScriptableObject
+    public class EnemyStatTemplate : GameDataAsset
     {
         [Header("Identity")]
         public int enemyID;
@@ -11,8 +12,10 @@ namespace Enemy
 
         [Header("Combat")]
         public float maxHP = 10;
+        public float hpPerWave = 2;
         public float moveSpeed = 3;
         public float damage = 2;
+        public float damagePerWave = 1;
         public float attackInterval = 1.2f;
 
         [Header("Defense")]
@@ -22,7 +25,13 @@ namespace Enemy
         public float coinReward = 1;
         public float expReward = 1;
 
-        public bool IsValid()
+        public override int DataId => enemyID;
+        public override string DisplayName => enemyName;
+        public override Sprite Icon => null;
+        public override string Summary => GetSummary();
+        public override string ValidationSourceName => GetValidationSourceName();
+
+        public override bool IsValid()
         {
             return enemyID >= 0 && !string.IsNullOrWhiteSpace(enemyName);
         }

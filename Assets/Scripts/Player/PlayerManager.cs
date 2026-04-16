@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+using Core;
 using Events;
 using UnityEngine;
 
@@ -7,20 +6,48 @@ namespace Player
 {
     public class PlayerManager : MonoBehaviour
     {
-        [SerializeField] private Transform parent;
-        public PlayerController Player { get; private set; } 
+        #region Inspector
 
-        public void Initialize(PlayerData data)
+        [Header("Fallback Root")]
+        [SerializeField] private Transform fallbackParent;
+
+        #endregion
+
+        #region Runtime
+
+        public PlayerController Player { get; private set; }
+
+        private GameSession _session;
+
+        #endregion
+
+        public void Configure(GameSession session)
         {
-            var playerObj = Instantiate(
-                data.playerPrefab,
-                transform.position,
-                transform.rotation);
-            
-            Player = playerObj.GetComponent<PlayerController>();
+            _session = session;
+        }
+
+        public void InitializeRun(PlayerData data)
+        {
+            ResetRun();
+
+            if (data == null || data.playerPrefab == null)
+                return;
+
+            var playerRoot = _session?.PlayerRoot != null ? _session.PlayerRoot : fallbackParent;
+            var playerObject = Instantiate(data.playerPrefab, transform.position, transform.rotation, playerRoot);
+            Player = playerObject.GetComponent<PlayerController>();
             Player.Initialize(data.playerStats);
-            Player.transform.SetParent(parent);
+
             EventBus.Publish(new OnPlayerSpawnedEvent(Player.transform));
+        }
+
+        public void ResetRun()
+        {
+            if (Player == null)
+                return;
+
+            Destroy(Player.gameObject);
+            Player = null;
         }
     }
 }

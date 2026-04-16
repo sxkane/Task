@@ -1,4 +1,6 @@
 using Core;
+using Player;
+using UI.GameSceneUI.Stats;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +11,12 @@ namespace UI.GameSceneUI
         [Header("Buttons")]
         [SerializeField] private Button resumeButton;
         [SerializeField] private Button returnToMenuButton;
+        
+        [Header("References")]
+        [SerializeField] private AttributePageUI attributePage;
+
+        private GameController _gameController;
+        private GameRoot _gameRoot;
 
         private void OnEnable()
         {
@@ -28,14 +36,30 @@ namespace UI.GameSceneUI
                 returnToMenuButton.onClick.RemoveListener(OnReturnToMenuButtonClick);
         }
 
+        public void Configure(GameController gameController, GameRoot gameRoot)
+        {
+            _gameController = gameController;
+            _gameRoot = gameRoot;
+        }
+
+        public void InitializeRun(PlayerController player)
+        {
+            attributePage.InitializeRun(player.Stats);
+        }
+
+        public void ResetRun()
+        {
+            attributePage.ResetRun();
+        }
+
         private void OnResumeButtonClick()
         {
-            GameController.Instance?.ResumeFromPause();
+            _gameController?.ResumeFromPause();
         }
 
         private void OnReturnToMenuButtonClick()
         {
-            GameRoot.Instance?.ReturnToMainMenu();
+            _gameRoot?.ReturnToMainMenu();
         }
     }
 }

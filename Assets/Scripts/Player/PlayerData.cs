@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using Data;
 using UnityEngine;
 using Weapons;
 
 namespace Player
 {
     [CreateAssetMenu(menuName = "Game/player")]
-    public class PlayerData : ScriptableObject
+    public class PlayerData : GameDataAsset
     {
         [Header("Identity")]
         public int playerID;
@@ -17,12 +18,16 @@ namespace Player
         public PlayerStats playerStats;
         public GameObject playerPrefab;
 
-        [Header("Starter Loadout")]
-        public List<WeaponSelectionEntry> starterWeaponSelections;
         [Header("Starter Loadout (Legacy)")]
-        public List<WeaponLoadoutEntry> starterWeapons;
+        public List<WeaponEntry> starterWeapons;
 
-        public bool IsValid()
+        public override int DataId => playerID;
+        public override string DisplayName => playerName;
+        public override Sprite Icon => playerIcon;
+        public override string Summary => GetSummary();
+        public override string ValidationSourceName => GetValidationSourceName();
+
+        public override bool IsValid()
         {
             return playerID >= 0 && !string.IsNullOrWhiteSpace(playerName) && playerPrefab != null;
         }
@@ -52,33 +57,9 @@ namespace Player
             return string.IsNullOrWhiteSpace(summary) ? string.Empty : summary.Trim();
         }
 
-        public List<WeaponLoadoutEntry> GetStarterWeaponEntries()
+        public List<WeaponEntry> GetStarterWeaponEntries()
         {
-            if (starterWeaponSelections != null && starterWeaponSelections.Count > 0)
-                return new List<WeaponLoadoutEntry>(starterWeaponSelections);
-
-            return starterWeapons ?? new List<WeaponLoadoutEntry>();
-        }
-
-        public List<WeaponSelectionEntry> GetStarterWeaponSelectionEntries()
-        {
-            if (starterWeaponSelections != null && starterWeaponSelections.Count > 0)
-                return starterWeaponSelections;
-
-            var migrated = new List<WeaponSelectionEntry>();
-            if (starterWeapons == null)
-                return migrated;
-
-            for (int i = 0; i < starterWeapons.Count; i++)
-            {
-                var entry = starterWeapons[i];
-                if (entry == null || !entry.IsValid())
-                    continue;
-
-                migrated.Add(entry.ToSelectionEntry());
-            }
-
-            return migrated;
+            return starterWeapons ?? new List<WeaponEntry>();
         }
     }
 }

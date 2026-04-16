@@ -1,14 +1,25 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using Core;
 using UnityEngine;
 
 namespace ObjectPool
 {
     public class PoolManager : MonoBehaviour
     {
+        #region Singleton
+
         public static PoolManager Instance;
 
-        private Dictionary<GameObject, Queue<GameObject>> _pools = new();
-        private Dictionary<GameObject, GameObject> _instanceToPrefab = new();
+        #endregion
+
+        #region Runtime
+
+        private readonly Dictionary<GameObject, Queue<GameObject>> _pools = new();
+        private readonly Dictionary<GameObject, GameObject> _instanceToPrefab = new();
+        private readonly Dictionary<GameObject, Transform> _instanceToDefaultParent = new();
+        private GameSession _session;
+
+        #endregion
 
         private void Awake()
         {
@@ -21,43 +32,68 @@ namespace ObjectPool
             Instance = this;
         }
 
-        public GameObject Spawn(GameObject prefab, Vector3 pos, Quaternion rot)
+        public void Configure(GameSession session)
         {
+            _session = session;
+        }
+
+        public void ResetRun()
+        {
+            _pools.Clear();
+            _instanceToPrefab.Clear();
+            _instanceToDefaultParent.Clear();
+        }
+
+        public GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null)
+        {
+            if (prefab == null)
+                return null;
+
             if (!_pools.TryGetValue(prefab, out var pool))
             {
                 pool = new Queue<GameObject>();
                 _pools[prefab] = pool;
             }
 
-            GameObject obj;
+            GameObject instance;
 
             if (pool.Count > 0)
             {
-                obj = pool.Dequeue();
-                obj.SetActive(true);
+                instance = pool.Dequeue();
+                instance.SetActive(true);
             }
             else
             {
-                obj = Instantiate(prefab, transform);
-                _instanceToPrefab[obj] = prefab;
+                instance = Instantiate(prefab);
+                _instanceToPrefab[instance] = prefab;
             }
 
-            obj.transform.SetPositionAndRotation(pos, rot);
-            obj.transform.SetParent(transform);
-
-            return obj;
+            var spawnParent = parent != null ? parent : transform;
+            _instanceToDefaultParent[instance] = spawnParent;
+            instance.transform.SetParent(spawnParent, false);
+            instance.transform.SetPositionAndRotation(position, rotation);
+            return instance;
         }
 
-        public void Despawn(GameObject obj)
+        public void Despawn(GameObject instance)
         {
-            if (!_instanceToPrefab.TryGetValue(obj, out var prefab))
+            if (instance == null)
+                return;
+
+            if (!_instanceToPrefab.TryGetValue(instance, out var prefab))
             {
-                Destroy(obj);
+                Destroy(instance);
                 return;
             }
 
-            obj.SetActive(false);
-            _pools[prefab].Enqueue(obj);
+            instance.SetActive(false);
+
+            if (_instanceToDefaultParent.TryGetValue(instance, out var parent) && parent != null)
+                instance.transform.SetParent(parent, false);
+            else
+                instance.transform.SetParent(transform, false);
+
+            _pools[prefab].Enqueue(instance);
         }
     }
 }

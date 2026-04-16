@@ -1,4 +1,6 @@
 using System;
+using Items;
+using UnityEngine;
 using Weapons;
 using Weapons.Items;
 
@@ -8,19 +10,15 @@ namespace Rewards.Shops
     public class ShopItem
     {
         public ShopItemType type;
-        public WeaponSelectionEntry weaponSelectionEntry;
-        public WeaponLoadoutEntry weaponEntry;
+        public WeaponEntry weaponEntry;
         public ItemData itemData;
         public bool isLocked;
 
         public bool IsWeapon => type == ShopItemType.Weapon;
         public bool IsItem => type == ShopItemType.Item;
 
-        public WeaponLoadoutEntry GetWeaponEntry()
+        public WeaponEntry GetWeaponEntry()
         {
-            if (weaponSelectionEntry != null)
-                return weaponSelectionEntry;
-
             return weaponEntry;
         }
 
@@ -46,6 +44,22 @@ namespace Rewards.Shops
                 return itemData != null ? itemData.GetSummary() : string.Empty;
 
             return GetWeaponEntry() != null ? GetWeaponEntry().GetSummary() : string.Empty;
+        }
+
+        public Sprite GetIcon()
+        {
+            if (IsItem)
+                return itemData.GetIcon();
+            
+            return weaponEntry.GetIcon();
+        }
+
+        public Rarity GetRarity()
+        {
+            if (IsItem)
+                return itemData.GetRarity();
+
+            return weaponEntry.GetRarity();
         }
     }
 }

@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45726a8ad22c449396d5a4a1e22c6bc5, type: 3}
+  m_Name: FireBall
+  m_EditorClassIdentifier: Assembly-CSharp::Weapons.WeaponData
+  weaponID: 1
+  weaponName: "\u706B\u7403"
+  summary: 
+  description: 
+  icon: {fileID: 6958571527567373106, guid: 2ed17e0bbc6abb240a6bff94db56a53c, type: 3}
+  weaponPrefab: {fileID: 499603121353363577, guid: 570d6270e85e6f242bca83422573b482, type: 3}
+  tags: 
+  rarityStats:
+  - rarity: 1
+    damage:
+    - damage: 5
+      damageType: 2
+      percentage: 25
+    attackSpeed: 1.12
+    critChance: 3
+    critDamage: 1.5
+    range: 400
+    knockback: 0
+    price: 36
+    effects:
+    - {fileID: 11400000, guid: d95426f21a10ead43a1636400a0f9c37, type: 2}
+  - rarity: 2
+    damage:
+    - damage: 10
+      damageType: 2
+      percentage: 50
+    attackSpeed: 1.03
+    critChance: 3
+    critDamage: 1.5
+    range: 450
+    knockback: 0
+    price: 66
+    effects:
+    - {fileID: 11400000, guid: d95426f21a10ead43a1636400a0f9c37, type: 2}
+  - rarity: 3
+    damage:
+    - damage: 20
+      damageType: 2
+      percentage: 75
+    attackSpeed: 0.87
+    critChance: 3
+    critDamage: 1.5
+    range: 500
+    knockback: 0
+    price: 140
+    effects:
+    - {fileID: 11400000, guid: d95426f21a10ead43a1636400a0f9c37, type: 2}

@@ -1,21 +1,31 @@
 using System.Collections;
 using Events;
-using UI;
 using UI.FadeScreenUI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Core
 {
-    /// <summary>
-    /// 游戏全局场景管理类
-    /// </summary>
     public class GameRoot : MonoBehaviour
     {
+        #region Singleton
+
         public static GameRoot Instance;
 
+        #endregion
+
+        #region Inspector
+
+        [Header("Transition")]
         [SerializeField] private SceneTransition transition;
-        public GameSession CurrentSession;
+
+        #endregion
+
+        #region Runtime
+
+        public GameSession CurrentSession { get; private set; }
+
+        #endregion
 
         private void Awake()
         {
@@ -24,14 +34,15 @@ namespace Core
                 Destroy(gameObject);
                 return;
             }
-            
+
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        
+
         public void EnterSelectScene()
         {
-            StartCoroutine(Load("Select Scene"));
+            CurrentSession = null;
+            StartCoroutine(Load("Select Scene", true));
         }
 
         public void StartGame(GameSession session)
@@ -43,20 +54,21 @@ namespace Core
         public void ReturnToMainMenu()
         {
             EventBus.Clear();
+            CurrentSession = null;
             StartCoroutine(Load("Main Menu", true));
         }
-        
+
         public IEnumerator Load(string sceneName, bool needFade = false)
         {
             Time.timeScale = 1f;
 
             if (needFade && transition != null)
-                yield return transition.FadeOut(0.3f);
+                yield return transition.FadeOut(0.8f);
 
             yield return SceneManager.LoadSceneAsync(sceneName);
 
             if (needFade && transition != null)
-                yield return transition.FadeIn(0.3f);
+                yield return transition.FadeIn(0.8f);
         }
     }
 }

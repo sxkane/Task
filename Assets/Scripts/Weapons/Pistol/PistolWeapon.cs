@@ -2,6 +2,7 @@ using Enemy;
 using ObjectPool;
 using Player;
 using UnityEngine;
+using Weapons.Effects;
 
 namespace Weapons.Pistol
 {
@@ -13,15 +14,15 @@ namespace Weapons.Pistol
         private float _cooldown;
         private float _timer;
         
-        public override void Configure(PlayerController player, WeaponLoadoutEntry entry, EnemyManager enemyManager)
+        public override void Configure(PlayerController player, WeaponEntry entry, EnemyManager enemyManager, Transform projectileRoot)
         {
-            base.Configure(player, entry, enemyManager);
+            base.Configure(player, entry, enemyManager, projectileRoot);
             _cooldown = Stats.attackSpeed;
         }
 
-        public override void InitializeRun(WeaponLoadoutEntry runtimeEntry = null)
+        public override void InitializeRun(WeaponEntry entry = null)
         {
-            base.InitializeRun(runtimeEntry);
+            base.InitializeRun(entry);
             _timer = 0f;
             _cooldown = Stats.attackSpeed;
         }
@@ -45,7 +46,8 @@ namespace Weapons.Pistol
             var bulletObj = PoolManager.Instance.Spawn(
                 circlePrefab,
                 transform.position, 
-                transform.rotation);
+                transform.rotation,
+                ProjectileRoot);
 
             var enemy = EnemyManager.GetNearestEnemy(Player.transform.position);
             Transform enemyTransform = null;

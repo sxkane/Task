@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Data;
 using Rewards.Shops;
 using Stats;
@@ -101,30 +100,32 @@ namespace Rewards.StatRewards
             };
         }
 
-        public static ShopItem GetItemReward(int currentWave, int luck, GameDatabase data)
+        public static RewardOption GetUpgradeOption(int currentWave, int luck)
+        {
+            var rarity = GetRarity(currentWave, luck);
+            var reward = GetStatReward(currentWave, luck);
+
+            return new RewardOption
+            {
+                title = $"{rarity} Upgrade",
+                description = $"{reward.type} +{reward.value:0.#}",
+                reward = reward
+            };
+        }
+
+        public static ShopItem GetWeaponShopOffer(int currentWave, int luck, GameDatabase data)
         {
             var weapons = data.weapons;
-            var items = data.items;
-            
             var rarity = GetRarity(currentWave, luck);
-
-            if (Random.Range(0, 2) == 1)
-            {
-                return new ShopItem()
-                {
-                    type = ShopItemType.Item,
-                    itemData = items[Random.Range(0, items.Count)],
-                };
-            }
 
             return new ShopItem()
             {
                 type = ShopItemType.Weapon,
-                weaponSelectionEntry = BuildWeaponSelectionEntry(weapons, rarity)
+                weaponEntry = BuildWeaponSelectionEntry(weapons, rarity)
             };
         }
 
-        private static WeaponSelectionEntry BuildWeaponSelectionEntry(List<WeaponData> weapons, Rarity rarity)
+        private static WeaponEntry BuildWeaponSelectionEntry(List<WeaponData> weapons, Rarity rarity)
         {
             if (weapons == null || weapons.Count == 0)
                 return null;
@@ -135,7 +136,7 @@ namespace Rewards.StatRewards
                 if (candidate == null)
                     continue;
 
-                var entry = candidate.CreateSelectionEntry(rarity);
+                var entry = candidate.CreateEntry(rarity);
                 if (entry != null && entry.IsValid())
                     return entry;
             }

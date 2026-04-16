@@ -26,7 +26,10 @@ namespace Enemy.Attack
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            var player = other.GetComponent<Player.PlayerController>();
+            var player = other.GetComponentInParent<Player.PlayerController>();
+            
+            Debug.Log(other.name);
+            Debug.Log(other.gameObject.layer);
             if (player == null)
                 return;
 

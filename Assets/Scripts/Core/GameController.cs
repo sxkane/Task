@@ -5,7 +5,9 @@ using Events.EnemyEvents;
 using GameFlow;
 using GameFlow.Phase;
 using Player;
-using Rewards;
+using Rewards.Shops;
+using Rewards.Upgrades;
+using UI.GameSceneUI;
 using UnityEngine;
 using Waves;
 using Weapons;
@@ -13,54 +15,56 @@ using Weapons.Items;
 
 namespace Core
 {
-    /// <summary>
-    /// 游戏流程控制类
-    /// </summary>
     public class GameController : MonoBehaviour
     {
+        #region Singleton
+
         public static GameController Instance;
-        
+
+        #endregion
+
+        #region Inspector
+
         [Header("Scene References")]
-        [SerializeField] private GameSceneContext context;
+        [SerializeField] private GameSceneContext sceneContext;
+        [SerializeField] private GameInputHandler gameInputHandler;
+        [SerializeField] private GameUIManager gameUIManager;
+
+        [Header("Managers")]
+        [SerializeField] private PlayerManager playerManager;
+        [SerializeField] private WeaponManager weaponManager;
+        [SerializeField] private ItemManager itemManager;
+        [SerializeField] private WaveManager waveManager;
+        [SerializeField] private UpgradeManager upgradeManager;
+        [SerializeField] private ShopManager shopManager;
 
         [Header("Pause")]
         [SerializeField] private float pauseToggleCooldown = 0.18f;
-        
+
+        #endregion
+
+        #region Runtime
+
         public GameFlowStateMachine StateMachine { get; private set; }
         public PlayerData SelectedPlayer { get; private set; }
-        public List<WeaponSelectionEntry> SelectedWeaponSelections { get; private set; }
-        public List<WeaponLoadoutEntry> SelectedWeapons
-        {
-            get
-            {
-                var entries = new List<WeaponLoadoutEntry>();
-                if (SelectedWeaponSelections == null)
-                    return entries;
-
-                for (int i = 0; i < SelectedWeaponSelections.Count; i++)
-                {
-                    var selection = SelectedWeaponSelections[i];
-                    if (selection == null || !selection.IsValid())
-                        continue;
-
-                    entries.Add(selection);
-                }
-
-                return entries;
-            }
-        }
+        public List<WeaponEntry> SelectedWeapons { get; private set; }
         public GameInputHandler GameInputHandler { get; private set; }
+        public GameRoot Root { get; private set; }
+        public GameSceneContext SceneContext => sceneContext;
+        public GameSession Session { get; private set; }
 
-        [Header("Game Manager")]
         public PlayerManager PlayerManager { get; private set; }
         public WeaponManager WeaponManager { get; private set; }
         public ItemManager ItemManager { get; private set; }
         public WaveManager WaveManager { get; private set; }
-        public RewardManger RewardManager { get; private set; }
+        public UpgradeManager UpgradeManager { get; private set; }
+        public ShopManager ShopManager { get; private set; }
 
         public event Action<GamePhaseType> OnPhaseChanged;
 
         private float _nextPauseToggleTime;
+
+        #endregion
 
         private void Awake()
         {
@@ -75,30 +79,19 @@ namespace Core
 
         private void Start()
         {
-            StateMachine = new GameFlowStateMachine();
-            
-            PlayerManager = GetComponent<PlayerManager>();
-            WeaponManager = GetComponent<WeaponManager>();
-            ItemManager = GetComponent<ItemManager>();
-            WaveManager = GetComponent<WaveManager>();
-            RewardManager = GetComponent<RewardManger>();
-            GameInputHandler = GetComponent<GameInputHandler>();
+            Root = GameRoot.Instance;
+            Session = Root != null ? Root.CurrentSession : null;
 
-            SelectedPlayer = GameRoot.Instance.CurrentSession.SelectedPlayer;
-            SelectedWeaponSelections = new List<WeaponSelectionEntry>();
-            foreach (var entry in GameRoot.Instance.CurrentSession.GetSelectedWeaponEntries())
+            if (Session == null || !Session.IsValid())
             {
-                if (entry == null || !entry.IsValid())
-                    continue;
-
-                SelectedWeaponSelections.Add(entry.ToSelectionEntry());
+                Debug.LogError("GameController.Start could not find a valid GameSession.");
+                return;
             }
+
+            Session.ConfigureSceneRoots(sceneContext);
+            Configure(Session);
             
-            EventBus.Subscribe<OnEnemyDiedEvent>(OnEnemyDied);
-            
-            GameInputHandler?.Initialize();
-            StateMachine.Initialize(new PreparingPhase(this));
-            OnPhaseChanged?.Invoke(GamePhaseType.Preparing);
+            BeginPhase(GamePhaseType.Preparing);
         }
 
         private void OnDestroy()
@@ -114,20 +107,110 @@ namespace Core
             TogglePause();
         }
 
+        #region Lifecycle
+
+        public void Configure(GameSession session)
+        {
+            Session = session;
+            StateMachine = new GameFlowStateMachine();
+
+            PlayerManager = playerManager != null ? playerManager : GetComponent<PlayerManager>();
+            WeaponManager = weaponManager != null ? weaponManager : GetComponent<WeaponManager>();
+            ItemManager = itemManager != null ? itemManager : GetComponent<ItemManager>();
+            WaveManager = waveManager != null ? waveManager : GetComponent<WaveManager>();
+            UpgradeManager = upgradeManager != null ? upgradeManager : GetComponent<UpgradeManager>();
+            ShopManager = shopManager != null ? shopManager : GetComponent<ShopManager>();
+            GameInputHandler = gameInputHandler != null ? gameInputHandler : GetComponent<GameInputHandler>();
+            gameUIManager = gameUIManager != null ? gameUIManager : GetComponentInChildren<GameUIManager>(true);
+            
+            PlayerManager?.Configure(Session);
+            WaveManager?.Configure(Session, PlayerManager);
+            WeaponManager?.Configure(Session, PlayerManager, WaveManager);
+            ItemManager?.Configure(PlayerManager);
+            UpgradeManager?.Configure(PlayerManager, WaveManager);
+            ShopManager?.Configure(PlayerManager, WeaponManager, WaveManager);
+            GameInputHandler?.Configure(this);
+            gameUIManager?.Configure(this);
+        }
+
+        public void InitializeRun()
+        {
+            if (Session == null || !Session.IsValid())
+            {
+                Debug.LogError("GameController.InitializeRun called without a valid GameSession.");
+                return;
+            }
+
+            SelectedPlayer = Session.SelectedPlayer;
+            SelectedWeapons = Session.SelectedWeapons ?? new List<WeaponEntry>();
+
+            PlayerManager?.InitializeRun(SelectedPlayer);
+            WaveManager?.InitializeRun();
+            WeaponManager?.InitializeRun(SelectedWeapons);
+            ItemManager?.InitializeRun();
+            UpgradeManager?.InitializeRun();
+            ShopManager?.InitializeRun();
+            GameInputHandler?.InitializeRun();
+            gameUIManager?.InitializeRun(PlayerManager);
+
+            EventBus.Subscribe<OnEnemyDiedEvent>(OnEnemyDied);
+        }
+
+        public void BeginPhase(GamePhaseType phaseType)
+        {
+            StateMachine.Initialize(CreatePhase(phaseType));
+            OnPhaseChanged?.Invoke(phaseType);
+        }
+
+        public void ResetRun()
+        {
+            if (StateMachine?.CurrentPhase != null)
+                StateMachine.CurrentPhase.Exit();
+
+            EventBus.Unsubscribe<OnEnemyDiedEvent>(OnEnemyDied);
+
+            gameUIManager?.ResetRun();
+            ShopManager?.ResetRun();
+            UpgradeManager?.ResetRun();
+            WeaponManager?.ResetRun();
+            ItemManager?.ResetRun();
+            WaveManager?.ResetRun();
+            PlayerManager?.ResetRun();
+            GameInputHandler?.ResetRun();
+
+            _nextPauseToggleTime = 0f;
+            StateMachine = null;
+            SelectedPlayer = null;
+            SelectedWeapons = null;
+        }
+
+        #endregion
+
         public void ChangeState(GamePhaseType phaseType)
         {
-            GamePhase gamePhase = phaseType switch
+            OnPhaseChanged?.Invoke(phaseType);
+            StateMachine.ChangePhase(CreatePhase(phaseType));
+        }
+
+        #region Phase
+
+        private GamePhase CreatePhase(GamePhaseType phaseType)
+        {
+            return phaseType switch
             {
                 GamePhaseType.Battle => new BattlePhase(this),
-                GamePhaseType.RewardAndShop => new RewardAndShopPhase(this),
+                GamePhaseType.Upgrade => new UpgradePhase(this),
+                GamePhaseType.Shop => new ShopPhase(this),
                 GamePhaseType.GameOver => new GameOverPhase(this),
                 GamePhaseType.Preparing => new PreparingPhase(this),
                 GamePhaseType.Pause => new PausePhase(this),
                 _ => throw new Exception("Invalid state")
             };
-            StateMachine.ChangePhase(gamePhase);
-            OnPhaseChanged?.Invoke(phaseType);
         }
+
+        #endregion
+
+        #region Pause
 
         public bool CanTogglePause()
         {
@@ -161,13 +244,17 @@ namespace Core
 
         public void Pause()
         {
-            Time.timeScale = 0;
+            Time.timeScale = 0f;
         }
 
         public void Resume()
         {
-            Time.timeScale = 1;
+            Time.timeScale = 1f;
         }
+
+        #endregion
+
+        #region Player Input
 
         public void EnablePlayerInput()
         {
@@ -179,14 +266,16 @@ namespace Core
             PlayerManager?.Player?.Input?.DisableInput();
         }
 
-        private void OnEnemyDied(OnEnemyDiedEvent e)
+        #endregion
+
+        private void OnEnemyDied(OnEnemyDiedEvent eventData)
         {
             var runtimeData = PlayerManager?.Player?.RuntimeData;
-            if (runtimeData == null || e.Target == null)
+            if (runtimeData == null || eventData.Target == null)
                 return;
 
-            runtimeData.AddCoins(Mathf.RoundToInt(e.Target.Stats.CoinReward));
-            runtimeData.AddExperience(Mathf.RoundToInt(e.Target.Stats.ExpReward));
+            runtimeData.AddCoins(Mathf.RoundToInt(eventData.Target.Stats.CoinReward));
+            runtimeData.AddExperience(Mathf.RoundToInt(eventData.Target.Stats.ExpReward));
         }
     }
 }

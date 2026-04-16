@@ -18,13 +18,13 @@ namespace Enemy
 
         public bool IsAlive => CurrentHP > 0;
 
-        public void Initialize(EnemyStatTemplate template)
+        public void Initialize(EnemyStatTemplate template, int currentWave)
         {
-            MaxHP = template.maxHP;
+            MaxHP = template.maxHP + (currentWave - 1) * template.hpPerWave;
             CurrentHP = MaxHP;
 
             MoveSpeed = template.moveSpeed;
-            Damage = template.damage;
+            Damage = template.damage + (currentWave - 1) *  template.damagePerWave;
             AttackInterval = template.attackInterval;
             KnockbackResistance = template.knockbackResistance;
             CoinReward = template.coinReward;

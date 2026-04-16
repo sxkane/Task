@@ -1,4 +1,6 @@
 using Core;
+using Data;
+using Data.Text;
 using Events;
 using Events.PlayerEvents;
 using Events.WaveEvents;
@@ -13,7 +15,7 @@ namespace UI.GameSceneUI
     {
         [Header("Combat")]
         [SerializeField] private TextMeshProUGUI gameTimerText;
-        
+
         [Header("Hp")]
         [SerializeField] private Slider hpBar;
         [SerializeField] private TextMeshProUGUI hpText;
@@ -25,6 +27,7 @@ namespace UI.GameSceneUI
         [SerializeField] private Slider expBar;
         [SerializeField] private TextMeshProUGUI expText;
 
+        private GameController _gameController;
         private PlayerController _player;
         private PlayerRuntimeData _runtimeData;
 
@@ -32,6 +35,7 @@ namespace UI.GameSceneUI
         {
             EventBus.Subscribe<WaveChangeSecondEvent>(UpdateGameTimerText);
             EventBus.Subscribe<OnPlayerDamagedEvent>(OnPlayerDamaged);
+            BindRuntimeData();
         }
 
         private void OnDisable()
@@ -41,23 +45,35 @@ namespace UI.GameSceneUI
             UnbindRuntimeData();
         }
 
-        private void Update()
+        public void Configure(GameController gameController)
         {
-            if (_player == null && GameController.Instance?.PlayerManager?.Player != null)
-            {
-                _player = GameController.Instance.PlayerManager.Player;
-                _runtimeData = _player.RuntimeData;
-                BindRuntimeData();
-                RefreshHealth();
-                RefreshProgression();
-            }
+            _gameController = gameController;
         }
 
-        private void OnPlayerDamaged(OnPlayerDamagedEvent e)
+        public void InitializeRun(PlayerController player)
         {
-            if (_player == null || e.Target != _player)
+            UnbindRuntimeData();
+
+            _player = player;
+            _runtimeData = player != null ? player.RuntimeData : null;
+
+            BindRuntimeData();
+            RefreshHealth();
+            RefreshProgression();
+        }
+
+        public void ResetRun()
+        {
+            UnbindRuntimeData();
+            _player = null;
+            _runtimeData = null;
+        }
+
+        private void OnPlayerDamaged(OnPlayerDamagedEvent eventData)
+        {
+            if (_player == null || eventData.Target != _player)
                 return;
-            
+
             RefreshHealth();
         }
 
@@ -65,18 +81,18 @@ namespace UI.GameSceneUI
         {
             if (_player == null || hpBar == null || hpFillImage == null)
                 return;
-            
+
             hpBar.maxValue = _player.MaxHp;
             hpBar.value = Mathf.Clamp(_player.CurrentHp, 0, _player.MaxHp);
-            hpText.text = $"{_player.CurrentHp} / {_player.MaxHp}";
+            hpText.text = UIValueBuilder.Health(_player.CurrentHp, _player.MaxHp);
 
             var amount = _player.MaxHp <= 0 ? 0f : _player.CurrentHp / (float)_player.MaxHp;
             if (amount > 0.6f)
-                hpFillImage.color = new Color(0.25f, 0.8f, 0.35f, 1f);
+                hpFillImage.color = StatTextBuilder.Positive;
             else if (amount > 0.3f)
                 hpFillImage.color = new Color(0.95f, 0.72f, 0.2f, 1f);
             else
-                hpFillImage.color = new Color(0.88f, 0.22f, 0.22f, 1f);
+                hpFillImage.color = StatTextBuilder.Negative;
         }
 
         private void RefreshProgression()
@@ -85,10 +101,10 @@ namespace UI.GameSceneUI
                 return;
 
             if (coinText != null)
-                coinText.text = "X " + _runtimeData.Coins.ToString();
+                coinText.text = UIValueBuilder.Coin(_runtimeData.Coins);
 
             if (levelText != null)
-                levelText.text = $"Lv.{_runtimeData.Level + 1}";
+                levelText.text = UIValueBuilder.Level(_runtimeData.Level + 1);
 
             if (expBar != null)
             {
@@ -97,21 +113,19 @@ namespace UI.GameSceneUI
             }
 
             if (expText != null)
-                expText.text = $"{_runtimeData.Experience} / {_runtimeData.NeedExperience}";
+                expText.text = UIValueBuilder.Progress(_runtimeData.Experience, _runtimeData.NeedExperience);
         }
 
-        private void UpdateGameTimerText(WaveChangeSecondEvent e)
+        private void UpdateGameTimerText(WaveChangeSecondEvent eventData)
         {
             if (gameTimerText != null)
-                gameTimerText.text = e.Timer.ToString();
+                gameTimerText.text = UIValueBuilder.Timer(eventData.Timer);
         }
 
         private void BindRuntimeData()
         {
             if (_runtimeData == null)
                 return;
-
-            UnbindRuntimeData();
 
             _runtimeData.OnCoinsChanged += OnCoinsChanged;
             _runtimeData.OnExpChanged += OnExpChanged;

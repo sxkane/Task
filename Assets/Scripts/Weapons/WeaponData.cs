@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using Data;
 using UnityEngine;
 
 namespace Weapons
 {
     [CreateAssetMenu(menuName = "Game/Weapon")]
-    public class WeaponData : ScriptableObject
+    public class WeaponData : GameDataAsset
     {
         [Header("Identity")]
         public int weaponID;
@@ -15,14 +16,20 @@ namespace Weapons
 
         [Header("Visual")]
         public GameObject weaponPrefab;
-        
+
         [Header("Set Tags")]
         public List<WeaponTag> tags = new();
 
         [Header("Rarity Settings")]
         public List<WeaponStats> rarityStats;
 
-        public bool IsValid()
+        public override int DataId => weaponID;
+        public override string DisplayName => weaponName;
+        public override Sprite Icon => icon;
+        public override string Summary => GetSummary();
+        public override string ValidationSourceName => GetValidationSourceName();
+
+        public override bool IsValid()
         {
             return weaponID >= 0
                    && !string.IsNullOrWhiteSpace(weaponName)
@@ -80,27 +87,17 @@ namespace Weapons
             return rarityStats.Exists(r => r != null && r.rarity == rarity);
         }
 
-        public WeaponLoadoutEntry CreateEntry(Rarity rarity)
+        public WeaponEntry CreateEntry(Rarity rarity)
         {
             var normalizedRarity = GetClosestAvailableRarity(rarity);
-            return new WeaponLoadoutEntry
+            return new WeaponEntry
             {
                 weaponData = this,
                 rarity = normalizedRarity
             };
         }
 
-        public WeaponRuntimeEntry CreateRuntimeEntry(Rarity rarity)
-        {
-            var normalizedRarity = GetClosestAvailableRarity(rarity);
-            return new WeaponRuntimeEntry
-            {
-                weaponData = this,
-                rarity = normalizedRarity
-            };
-        }
-
-        public bool TryCreateEntry(Rarity rarity, out WeaponLoadoutEntry entry)
+        public bool TryCreateEntry(Rarity rarity, out WeaponEntry entry)
         {
             entry = null;
             if (!IsValid())
@@ -114,19 +111,9 @@ namespace Weapons
             return true;
         }
 
-        public WeaponLoadoutEntry CreateDefaultEntry()
+        public WeaponEntry CreateDefaultEntry()
         {
             return CreateEntry(GetLowestAvailableRarity());
-        }
-
-        public WeaponSelectionEntry CreateSelectionEntry(Rarity rarity)
-        {
-            var normalizedRarity = GetClosestAvailableRarity(rarity);
-            return new WeaponSelectionEntry
-            {
-                weaponData = this,
-                rarity = normalizedRarity
-            };
         }
 
         public Rarity GetClosestAvailableRarity(Rarity requested)

@@ -1,89 +1,132 @@
 using Core;
 using GameFlow;
 using Player;
+using UI.GameSceneUI.Reward;
 using UnityEngine;
 
 namespace UI.GameSceneUI
 {
     public class GameUIManager : MonoBehaviour
     {
-        public static GameUIManager Instance;
-        
+        #region Inspector
+
         [Header("Pages")]
         [SerializeField] private GameObject hud;
         [SerializeField] private GameObject pausePanel;
-        [SerializeField] private GameObject rewardPanel;
+        [SerializeField] private GameObject upgradePanel;
+        [SerializeField] private GameObject shopPanel;
         [SerializeField] private GameObject resultPanel;
 
-        [Header("Shared UI")]
-        [SerializeField] private UIStatSlot[] statSlots;
-        [SerializeField] public StatTooltip tooltip;
-        
+        [Header("Views")]
+        [SerializeField] private HUD hudView;
+        [SerializeField] private PausePanel pausePanelView;
+        [SerializeField] private UpgradePanel upgradePanelView;
+        [SerializeField] private ShopPanel shopPanelView;
+        [SerializeField] private ResultPanel resultPanelView;
+
+        #endregion
+
+        #region Runtime
+
         public PlayerController Player { get; private set; }
 
-        private void Awake()
-        {
-            if (Instance != null)
-            {
-                Destroy(gameObject);
-                return;
-            }
+        private GameController _gameController;
 
-            Instance = this;
-        }
+        #endregion
 
-        private void Start()
-        {
-            GameController.Instance.OnPhaseChanged += OnPhaseChange;
-        }
-        
         private void OnDisable()
         {
-            GameController.Instance.OnPhaseChanged -= OnPhaseChange;
+            if (_gameController != null)
+                _gameController.OnPhaseChanged -= OnPhaseChange;
         }
 
-        public void PlayUI(GameObject ui)
+        public void Configure(GameController gameController)
         {
-            hud.SetActive(false);
-            pausePanel.SetActive(false);
-            rewardPanel.SetActive(false);
-            resultPanel.SetActive(false);
+            if (_gameController != null)
+                _gameController.OnPhaseChanged -= OnPhaseChange;
 
-            if (ui != null)
-                ui.SetActive(true);
+            _gameController = gameController;
+
+            hudView = hudView != null ? hudView : hud != null ? hud.GetComponent<HUD>() : null;
+            pausePanelView = pausePanelView != null ? pausePanelView : pausePanel != null ? pausePanel.GetComponent<PausePanel>() : null;
+            upgradePanelView = upgradePanelView != null ? upgradePanelView : upgradePanel != null ? upgradePanel.GetComponent<UpgradePanel>() : null;
+            shopPanelView = shopPanelView != null ? shopPanelView : shopPanel != null ? shopPanel.GetComponent<ShopPanel>() : null;
+            resultPanelView = resultPanelView != null ? resultPanelView : resultPanel != null ? resultPanel.GetComponent<ResultPanel>() : null;
+
+            if (_gameController != null)
+                _gameController.OnPhaseChanged += OnPhaseChange;
+
+            hudView?.Configure(gameController);
+            pausePanelView?.Configure(gameController, gameController != null ? gameController.Root : null);
+            upgradePanelView?.Configure(gameController);
+            shopPanelView?.Configure(gameController);
+            resultPanelView?.Configure(gameController != null ? gameController.Root : null);
         }
-        
-        public void Initialize(PlayerManager playerManager)
+
+        public void InitializeRun(PlayerManager playerManager)
         {
-            Player = playerManager.Player;
-            
-            foreach (var statSlot in statSlots)
-                statSlot.Initialize();
-            
+            Player = playerManager != null ? playerManager.Player : null;
+
+            hudView?.InitializeRun(Player);
+            upgradePanelView?.InitializeRun(Player);
+            shopPanelView?.InitializeRun(Player != null ? Player.RuntimeData : null);
+            pausePanelView?.InitializeRun(Player);
+
             PlayUI(hud);
+        }
+
+        public void ResetRun()
+        {
+            hudView?.ResetRun();
+            upgradePanelView?.ResetRun();
+            shopPanelView?.ResetRun();
+            pausePanelView?.ResetRun();
+            Player = null;
+        }
+
+        public void PlayUI(GameObject targetUi)
+        {
+            if (hud != null)
+                hud.SetActive(false);
+
+            if (pausePanel != null)
+                pausePanel.SetActive(false);
+
+            if (upgradePanel != null)
+                upgradePanel.SetActive(false);
+
+            if (shopPanel != null)
+                shopPanel.SetActive(false);
+
+            if (resultPanel != null)
+                resultPanel.SetActive(false);
+
+            if (targetUi != null)
+                targetUi.SetActive(true);
         }
 
         private void OnPhaseChange(GamePhaseType phase)
         {
-            if (phase == GamePhaseType.Battle)
+            switch (phase)
             {
-                PlayUI(hud);
-            }
-            else if (phase == GamePhaseType.GameOver)
-            {
-                PlayUI(resultPanel);
-            }
-            else if (phase == GamePhaseType.Pause)
-            {
-                PlayUI(pausePanel);
-            }
-            else if (phase == GamePhaseType.RewardAndShop)
-            {
-                PlayUI(rewardPanel);
-            }
-            else if (phase == GamePhaseType.Preparing)
-            {
-                Initialize(GameController.Instance.PlayerManager);
+                case GamePhaseType.Battle:
+                    PlayUI(hud);
+                    break;
+                case GamePhaseType.GameOver:
+                    PlayUI(resultPanel);
+                    break;
+                case GamePhaseType.Pause:
+                    PlayUI(pausePanel);
+                    break;
+                case GamePhaseType.Upgrade:
+                    PlayUI(upgradePanel);
+                    break;
+                case GamePhaseType.Shop:
+                    PlayUI(shopPanel);
+                    break;
+                case GamePhaseType.Preparing:
+                    PlayUI(hud);
+                    break;
             }
         }
     }

@@ -1,5 +1,6 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using Core;
 using Enemy;
 using Player;
 using Stats;
@@ -10,38 +11,114 @@ namespace Weapons
 {
     public class WeaponManager : MonoBehaviour
     {
-        public static WeaponManager Instance;
-        
+        #region Inspector
+
+        [Header("Settings")]
         [SerializeField] private float radius;
         [SerializeField] private List<WeaponSetBonusData> setBonuses = new();
-        private Transform _weaponParent;
 
+        #endregion
+
+        #region Runtime
+
+        private GameSession _session;
+        private PlayerManager _playerManager;
+        private WaveManager _waveManager;
         private PlayerController _player;
         private EnemyManager _enemyManager;
-
+        private Transform _weaponParent;
+        private Transform _projectileRoot;
         private int _maxWeaponCount;
+
         private readonly List<Weapon> _weapons = new();
         private readonly Dictionary<WeaponTag, int> _tagCounts = new();
         private readonly HashSet<WeaponSetBonusData> _activeSetBonuses = new();
-        
+
         public event Action OnLoadoutChanged;
 
         public IReadOnlyList<Weapon> Weapons => _weapons;
 
-        private void Awake()
-        {
-            if (Instance != null)
-            {
-                Destroy(gameObject);
-                return;
-            }
+        #endregion
 
-            Instance = this;
+        public void LateUpdate()
+        {
+            if (_player == null)
+                return;
+
+            var playerPos = _player.transform.position;
+
+            for (int i = 0; i < _weapons.Count; i++)
+            {
+                var weapon = _weapons[i];
+                if (weapon == null)
+                    continue;
+
+                weapon.transform.position = playerPos + (Vector3)weapon.Offset;
+            }
         }
 
-        public bool TryAddWeapon(WeaponLoadoutEntry weaponEntry)
+        public void Configure(GameSession session, PlayerManager playerManager, WaveManager waveManager)
         {
-            if (weaponEntry == null || !weaponEntry.IsValid())
+            _session = session;
+            _playerManager = playerManager;
+            _waveManager = waveManager;
+        }
+
+        public void InitializeRun(List<WeaponEntry> initialWeapons)
+        {
+            ResetRun();
+
+            _player = _playerManager != null ? _playerManager.Player : null;
+            _enemyManager = _waveManager != null ? _waveManager.EnemyManager : null;
+            _weaponParent = _player != null ? _player.transform : _session?.WeaponRoot;
+            _projectileRoot = _session?.GetOrCreateGroupRoot(GameSessionRootType.Weapon, "Projectiles");
+            _maxWeaponCount = _player != null && _player.Stats != null ? _player.Stats.MaxWeapons : 0;
+
+            if (initialWeapons == null)
+                return;
+
+            foreach (var starterWeapon in initialWeapons)
+            {
+                if (starterWeapon == null || !starterWeapon.IsValid())
+                    continue;
+
+                TryAddWeapon(starterWeapon);
+            }
+        }
+
+        public void ResetRun()
+        {
+            for (var i = 0; i < _weapons.Count; i++)
+            {
+                if (_weapons[i] != null)
+                    Destroy(_weapons[i].gameObject);
+            }
+
+            _weapons.Clear();
+            _player = null;
+            _enemyManager = null;
+            _weaponParent = null;
+            _projectileRoot = null;
+            _maxWeaponCount = 0;
+            RebuildTagCounts();
+            OnLoadoutChanged?.Invoke();
+        }
+
+        public void BeginPhase()
+        {
+            foreach (var weapon in _weapons)
+                weapon.BeginPhase();
+        }
+
+        public void EndPhase()
+        {
+            foreach (var weapon in _weapons)
+                weapon.EndPhase();
+        }
+
+        public bool TryAddWeapon(WeaponEntry weaponEntry)
+        {
+            if (weaponEntry == null || !weaponEntry.IsValid() || _player == null)
                 return false;
 
             var sameWeapon = FindWeapon(weaponEntry);
@@ -61,25 +138,28 @@ namespace Weapons
             return true;
         }
 
-        public bool TryAddWeapon(WeaponData weaponData, Rarity rarity)
+        public bool ContainsWeapon(int weaponId)
         {
-            if (weaponData == null)
-                return false;
+            return _weapons.Exists(w => w != null && w.WeaponID == weaponId);
+        }
 
-            return TryAddWeapon(weaponData.CreateEntry(rarity));
-        }
-        
-        private Weapon FindWeapon(WeaponLoadoutEntry weaponEntry)
+        public Transform GetProjectileRoot()
         {
-            return _weapons.Find(w => w.WeaponID == weaponEntry.GetDataId() && w.Entry != null && w.Entry.rarity == weaponEntry.rarity);
+            return _projectileRoot;
         }
-        
-        private void SpawnWeapon(WeaponLoadoutEntry weaponEntry)
+
+        private Weapon FindWeapon(WeaponEntry weaponEntry)
         {
-            var obj = Instantiate(weaponEntry.GetPrefab(), _weaponParent);
-            var weapon = obj.GetComponent<Weapon>();
-            
-            weapon.Configure(_player, weaponEntry, _enemyManager);
+            return _weapons.Find(w =>
+                w.WeaponID == weaponEntry.GetDataId() && w.Entry != null && w.Entry.rarity == weaponEntry.rarity);
+        }
+
+        private void SpawnWeapon(WeaponEntry weaponEntry)
+        {
+            var weaponObject = Instantiate(weaponEntry.GetPrefab(), _weaponParent);
+            var weapon = weaponObject.GetComponent<Weapon>();
+
+            weapon.Configure(_player, weaponEntry, _enemyManager, _projectileRoot);
             weapon.InitializeRun(weaponEntry);
             _weapons.Add(weapon);
 
@@ -88,7 +168,7 @@ namespace Weapons
             OnLoadoutChanged?.Invoke();
         }
 
-        public void UpgradeWeapon(Weapon weapon)
+        private void UpgradeWeapon(Weapon weapon)
         {
             weapon.Upgrade();
             ArrangeWeapons();
@@ -98,98 +178,25 @@ namespace Weapons
 
         private void ArrangeWeapons()
         {
-            int count = _weapons.Count;
-
-            for (int i = 0; i < count; i++)
+            var count = _weapons.Count;
+            for (var i = 0; i < count; i++)
             {
-                float angle = i * Mathf.PI * 2f / count;
-
-                Vector2 offset = new Vector2(
-                    Mathf.Cos(angle),
-                    Mathf.Sin(angle)) * radius;
-
+                var angle = i * Mathf.PI * 2f / count;
+                var offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
                 _weapons[i].SetOffset(offset);
             }
         }
 
-        public void Configure(PlayerManager playerManager, WaveManager waveManager)
-        {
-            _player = playerManager.Player;
-            _enemyManager = waveManager.EnemyManager;
-            _maxWeaponCount = _player.Stats.MaxWeapons;
-            _weaponParent = _player.transform;
-        }
-
-        public void InitializeRun(List<WeaponLoadoutEntry> initialWeapons)
-        {
-            ResetRun();
-
-            if (initialWeapons == null)
-                return;
-            
-            foreach (var starterWeapon in initialWeapons)
-            {
-                if (starterWeapon == null || !starterWeapon.IsValid())
-                    continue;
-
-                TryAddWeapon(starterWeapon);
-            }
-        }
-
-        public void InitializeRun(List<WeaponSelectionEntry> initialWeapons)
-        {
-            ResetRun();
-            if (initialWeapons == null)
-                return;
-
-            for (int i = 0; i < initialWeapons.Count; i++)
-            {
-                var starterWeapon = initialWeapons[i];
-                if (starterWeapon == null || !starterWeapon.IsValid())
-                    continue;
-
-                TryAddWeapon(starterWeapon);
-            }
-        }
-
-        public void ResetRun()
-        {
-            for (int i = 0; i < _weapons.Count; i++)
-            {
-                if (_weapons[i] != null)
-                    Destroy(_weapons[i].gameObject);
-            }
-
-            _weapons.Clear();
-            RebuildTagCounts();
-            OnLoadoutChanged?.Invoke();
-        }
-
-        public void BeginPhase()
-        {
-            foreach (var w in _weapons)
-                w.BeginPhase();
-        }
-
-        public void EndPhase()
-        {
-            foreach (var w in _weapons)
-                w.EndPhase();
-        }
+        #region Weapon Tag
 
         public IReadOnlyDictionary<WeaponTag, int> GetTagCounts()
         {
             return _tagCounts;
         }
 
-        public bool ContainsWeapon(int weaponId)
+        public int GetSetTier(WeaponTag weaponTag)
         {
-            return _weapons.Exists(w => w != null && w.WeaponID == weaponId);
-        }
-
-        public int GetSetTier(WeaponTag tag)
-        {
-            return _tagCounts.TryGetValue(tag, out var count)
+            return _tagCounts.TryGetValue(weaponTag, out var count)
                 ? Mathf.Clamp(count, 0, 6)
                 : 0;
         }
@@ -204,14 +211,14 @@ namespace Weapons
                 if (tags == null)
                     continue;
 
-                for (int i = 0; i < tags.Count; i++)
+                for (var i = 0; i < tags.Count; i++)
                 {
-                    var tag = tags[i];
-                    if (tag == WeaponTag.None)
+                    var weaponTag = tags[i];
+                    if (weaponTag == WeaponTag.None)
                         continue;
 
-                    _tagCounts.TryGetValue(tag, out var value);
-                    _tagCounts[tag] = value + 1;
+                    _tagCounts.TryGetValue(weaponTag, out var value);
+                    _tagCounts[weaponTag] = value + 1;
                 }
             }
 
@@ -228,18 +235,18 @@ namespace Weapons
             if (setBonuses == null)
                 return;
 
-            for (int i = 0; i < setBonuses.Count; i++)
+            for (var i = 0; i < setBonuses.Count; i++)
             {
                 var setBonus = setBonuses[i];
                 if (setBonus == null || !setBonus.IsValid())
                     continue;
 
-                int count = GetSetTier(setBonus.WeaponTag);
+                var count = GetSetTier(setBonus.WeaponTag);
                 var tier = setBonus.ResolveActiveTier(count);
                 if (tier == null || tier.modifiers == null)
                     continue;
 
-                for (int j = 0; j < tier.modifiers.Count; j++)
+                for (var j = 0; j < tier.modifiers.Count; j++)
                 {
                     var mod = tier.modifiers[j];
                     var stat = _player.Stats.GetStat(mod.statType);
@@ -259,8 +266,8 @@ namespace Weapons
             {
                 if (setBonus == null)
                     continue;
-                
-                for (int statIndex = 0; statIndex <= (int)StatType.Harvesting; statIndex++)
+
+                for (var statIndex = 0; statIndex <= (int)StatType.Harvesting; statIndex++)
                 {
                     var statType = (StatType)statIndex;
                     _player.Stats.GetStat(statType).RemoveModifiersFromSource(setBonus);
@@ -270,14 +277,6 @@ namespace Weapons
             _activeSetBonuses.Clear();
         }
 
-        // Legacy wrappers.
-        public void Initialize(PlayerManager playerManager, WaveManager waveManager, List<WeaponLoadoutEntry> initialWeapons)
-        {
-            Configure(playerManager, waveManager);
-            InitializeRun(initialWeapons);
-        }
-
-        public void Activate() => BeginPhase();
-        public void Deactivate() => EndPhase();
+        #endregion
     }
 }

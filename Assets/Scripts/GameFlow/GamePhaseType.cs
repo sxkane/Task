@@ -4,7 +4,8 @@
     {
         Preparing,
         Battle,
-        RewardAndShop,
+        Upgrade,
+        Shop,
         Pause,
         GameOver
     }

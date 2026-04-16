@@ -64,7 +64,6 @@ MonoBehaviour:
   text: {fileID: 4523016672387610977}
   verticalOffset: 60
   horizontalPadding: 12
-  verticalPadding: 12
 --- !u!1 &6357988833314573979
 GameObject:
   m_ObjectHideFlags: 0
@@ -282,8 +281,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: ebafe6c5fa03a0d458308f77eee6c198, type: 2}
-  m_sharedMaterial: {fileID: -8575266270525379088, guid: ebafe6c5fa03a0d458308f77eee6c198, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 87fa61fdbbedfff44b667b5e0e0dc8e4, type: 2}
+  m_sharedMaterial: {fileID: -4155450432374727909, guid: 87fa61fdbbedfff44b667b5e0e0dc8e4, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

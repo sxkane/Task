@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using Enemy;
+using Items;
 using Player;
 using UnityEngine;
 using Waves;
 using Weapons;
-using Weapons.Items;
 
 namespace Data
 {

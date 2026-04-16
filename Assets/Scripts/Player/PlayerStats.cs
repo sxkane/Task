@@ -33,31 +33,10 @@ namespace Player
                 { StatType.Luck, LuckStat },
                 { StatType.Harvesting, HarvestingStat },
             };
-            
-            _statValueDict = new Dictionary<StatType, int>
-            {
-                { StatType.MaxHP, MaxHp },
-                { StatType.HPRegen, HpRegen },
-                { StatType.LifeSteal, LifeStealPercent },
-                { StatType.Armor, Armor },
-                { StatType.Dodge, DodgePercent },
-
-                { StatType.DamagePercent, DamagePercent },
-                { StatType.MeleeDamage, MeleeDamage },
-                { StatType.RangedDamage, RangedDamage },
-                { StatType.ElementalDamage, ElementalDamage },
-                { StatType.AttackSpeed, AttackSpeedPercent },
-                { StatType.CritChance, CritChancePercent },
-                { StatType.Range, Range },
-
-                { StatType.Speed, SpeedPercent },
-                { StatType.Luck, Luck },
-                { StatType.Harvesting, Harvesting },
-            };
         }
         
         public Stat GetStat(StatType type) => _statsDict[type];
-        public int GetStatValue(StatType type) => _statValueDict[type];
+        public int GetStatValue(StatType type) => Mathf.RoundToInt(_statsDict[type].Value);
 
         #region ===== Survival =====
 

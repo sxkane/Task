@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Items;
 using Weapons.Items;
 
 namespace Events.DisplayEvent

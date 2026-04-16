@@ -278,5 +278,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy.EnemyRangedAttack
   bulletPrefab: {fileID: 1081482840777404661, guid: a31b992d28484e34db2067c323c8968b, type: 3}
-  attackRange: 3.4
+  attackRange: 5
   firePoint: {fileID: 5879395203412858238}
