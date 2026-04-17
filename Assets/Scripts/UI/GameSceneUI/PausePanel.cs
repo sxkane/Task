@@ -1,4 +1,5 @@
 using Core;
+using GameFlow;
 using Player;
 using UI.GameSceneUI.Stats;
 using UnityEngine;
@@ -11,6 +12,7 @@ namespace UI.GameSceneUI
         [Header("Buttons")]
         [SerializeField] private Button resumeButton;
         [SerializeField] private Button returnToMenuButton;
+        [SerializeField] private Button restartButton;
         
         [Header("References")]
         [SerializeField] private AttributePageUI attributePage;
@@ -25,6 +27,9 @@ namespace UI.GameSceneUI
 
             if (returnToMenuButton != null)
                 returnToMenuButton.onClick.AddListener(OnReturnToMenuButtonClick);
+            
+            if (restartButton != null)
+                restartButton.onClick.AddListener(OnRestartButtonClick);
         }
 
         private void OnDisable()
@@ -34,6 +39,9 @@ namespace UI.GameSceneUI
 
             if (returnToMenuButton != null)
                 returnToMenuButton.onClick.RemoveListener(OnReturnToMenuButtonClick);
+            
+            if (restartButton != null)
+                restartButton.onClick.RemoveListener(OnRestartButtonClick);
         }
 
         public void Configure(GameController gameController, GameRoot gameRoot)
@@ -60,6 +68,12 @@ namespace UI.GameSceneUI
         private void OnReturnToMenuButtonClick()
         {
             _gameRoot?.ReturnToMainMenu();
+        }
+
+        private void OnRestartButtonClick()
+        {
+            _gameController?.ResetRun();
+            _gameController?.ChangeState(GamePhaseType.Preparing);
         }
     }
 }

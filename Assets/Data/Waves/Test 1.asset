@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01d592951aae48a9912bd0d3d81ca5ac, type: 3}
   m_Name: Test 1
   m_EditorClassIdentifier: Assembly-CSharp::Waves.WaveConfig
-  waveID: 999
+  waveID: 998
   waveName: test
   duration: 60
   spawnRateCurve:

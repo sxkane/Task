@@ -1,5 +1,6 @@
 using Core;
 using Events;
+using Stats;
 using UnityEngine;
 
 namespace Player
@@ -37,6 +38,8 @@ namespace Player
             var playerObject = Instantiate(data.playerPrefab, transform.position, transform.rotation, playerRoot);
             Player = playerObject.GetComponent<PlayerController>();
             Player.Initialize(data.playerStats);
+            ApplyPassiveData(data);
+            Player.RefillHealthToMax();
 
             EventBus.Publish(new OnPlayerSpawnedEvent(Player.transform));
         }
@@ -48,6 +51,23 @@ namespace Player
 
             Destroy(Player.gameObject);
             Player = null;
+        }
+
+        private void ApplyPassiveData(PlayerData data)
+        {
+            if (Player == null || data == null)
+                return;
+
+            var passiveData = data.GetPassiveData();
+            if (passiveData == null)
+                return;
+
+            for (var i = 0; i < passiveData.Modifiers.Count; i++)
+            {
+                var modifier = passiveData.Modifiers[i];
+                var stat = Player.Stats.GetStat(modifier.statType);
+                stat.AddModifier(new Modifier(modifier.value, modifier.modifierType, passiveData));
+            }
         }
     }
 }

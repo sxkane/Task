@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Data;
+using Stats.Buffs;
 using UnityEngine;
 using Weapons;
 
@@ -17,6 +18,7 @@ namespace Player
         [Header("Runtime Template")]
         public PlayerStats playerStats;
         public GameObject playerPrefab;
+        public PlayerPassiveData passiveData;
 
         [Header("Starter Loadout (Legacy)")]
         public List<WeaponEntry> starterWeapons;
@@ -60,6 +62,11 @@ namespace Player
         public List<WeaponEntry> GetStarterWeaponEntries()
         {
             return starterWeapons ?? new List<WeaponEntry>();
+        }
+
+        public PlayerPassiveData GetPassiveData()
+        {
+            return passiveData;
         }
     }
 }

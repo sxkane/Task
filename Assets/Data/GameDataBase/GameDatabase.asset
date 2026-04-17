@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Data.GameDatabase
   players:
   - {fileID: 11400000, guid: 5b8dab206c86fc947a9052f4a27a3da3, type: 2}
+  - {fileID: 11400000, guid: 3212cce1909b0a7448f245691619d15f, type: 2}
+  - {fileID: 11400000, guid: 447a3a20399a34d4b8bca87d90a8055a, type: 2}
   weapons:
   - {fileID: 11400000, guid: b51c1ca2b118a544dbe9f2346ae356af, type: 2}
   - {fileID: 11400000, guid: cf681188ae9fd6a408e548215c248a9b, type: 2}

@@ -14,22 +14,20 @@ namespace Data.Text
         public static string BuildPlayer(PlayerData data)
         {
             if (data?.playerStats == null) return string.Empty;
-
-            var stats = data.playerStats;
-            stats.Initialize();
-
-            var lines = new List<string>
+            
+            var lines = new List<string>();
+            
+            lines.Add(data.GetSummary());
+            
+            var passiveData = data.GetPassiveData();
+            if (passiveData != null)
             {
-                StatTextBuilder.BuildLine(stats.MaxHp, StatType.MaxHP),
-                StatTextBuilder.BuildLine(stats.MeleeDamage, StatType.MeleeDamage),
-                StatTextBuilder.BuildLine(stats.RangedDamage, StatType.RangedDamage),
-                StatTextBuilder.BuildLine(stats.ElementalDamage, StatType.ElementalDamage),
-                StatTextBuilder.BuildLine(stats.AttackSpeedPercent, StatType.AttackSpeed),
-                StatTextBuilder.BuildLine(stats.CritChancePercent, StatType.CritChance),
-                StatTextBuilder.BuildLine(stats.SpeedPercent, StatType.Speed),
-                StatTextBuilder.BuildLine(stats.Armor, StatType.Armor),
-                StatTextBuilder.BuildLine(stats.DodgePercent, StatType.Dodge)
-            };
+                foreach (var modifier in passiveData.Modifiers)
+                {
+                    var description = StatTextBuilder.BuildLine(modifier.value, modifier.statType);
+                    lines.Add(description);
+                }
+            }
 
             lines.RemoveAll(string.IsNullOrWhiteSpace);
             return string.Join("\n", lines);

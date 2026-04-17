@@ -4,6 +4,8 @@ using Enemy.Core;
 using Enemy.EnemyStates;
 using Enemy.Movement;
 using Enemy.UI;
+using Enemy.Buffs;
+using Core;
 using Events;
 using Events.EnemyEvents;
 using ObjectPool;
@@ -43,6 +45,7 @@ namespace Enemy
         public EnemyContext Context { get; private set; }
         public EnemyLifecycle Lifecycle { get; private set; }
         public EnemyMotor Motor { get; private set; }
+        public EnemyBuffController Buffs { get; private set; }
         public int CurrentWave { get; private set; }
         public float SpawnActivationDelay => spawnActivationDelay;
         public float DeathDespawnDelay => deathDespawnDelay;
@@ -83,6 +86,7 @@ namespace Enemy
             Stats.Initialize(template, currentWave);
             Lifecycle = new EnemyLifecycle();
             Motor = new EnemyMotor(this, steeringProfile, enemyLayer);
+            Buffs = new EnemyBuffController(Stats);
             Context = new EnemyContext(this, Transform, Rigidbody, Animator, SpriteRenderer, Target, _enemyManager, Stats);
 
             Attack.Initialize(this);
@@ -110,6 +114,7 @@ namespace Enemy
             if (!_initialize)
                 return;
 
+            Buffs?.Tick(Time.deltaTime);
             Machine.currentState.Update();
         }
 
@@ -152,6 +157,21 @@ namespace Enemy
             Stats.Heal(amount);
         }
 
+        public EnemyBuffInstance ApplyBuff(EnemyBuffData buffData, object source = null)
+        {
+            return Buffs?.ApplyBuff(buffData, source);
+        }
+
+        public void RemoveBuffsFromSource(object source)
+        {
+            Buffs?.RemoveBuffsFromSource(source);
+        }
+
+        public void ClearBuffs()
+        {
+            Buffs?.Clear();
+        }
+
         private void BeginDeath()
         {
             if (_deathHandled)
@@ -187,6 +207,12 @@ namespace Enemy
 
         public void FinishSpawn()
         {
+            if (GameController.Instance != null && GameController.Instance.IsWaveCompleting)
+            {
+                FinishDeath();
+                return;
+            }
+
             Lifecycle.EnterActive();
             SetCombatEnabled(true);
             ChangeState(EnemyStateEnum.Move);
@@ -285,12 +311,7 @@ namespace Enemy
 
         private void RefreshUndeadMageBuff()
         {
-            var hasBuff = _undeadMageSources.Count > 0;
-            Stats?.SetSupportAuraMultipliers(
-                hasBuff ? 2.5f : 1f,
-                hasBuff ? 1.5f : 1f,
-                hasBuff ? 1.25f : 1f);
-            Visual?.SetBuffOutline(hasBuff);
+            Visual?.SetBuffOutline(_undeadMageSources.Count > 0);
         }
 
         private void InitializeHealthBar()

@@ -1,5 +1,6 @@
 using Events;
 using Events.PlayerEvents;
+using Stats.Buffs;
 using UnityEngine;
 
 namespace Player
@@ -13,6 +14,7 @@ namespace Player
         
         [Header("Player Stats")]
         public PlayerStats Stats { get; private set; }
+        public BuffController Buffs { get; private set; }
         public int CurrentHp { get; private set; }
         public int MaxHp => Stats?.MaxHp ?? 0;
         public bool IsAlive => CurrentHp > 0;
@@ -22,6 +24,8 @@ namespace Player
 
         private void Update()
         {
+            Buffs?.Tick(Time.deltaTime);
+
             Vector2 move = Input.MoveInput;
 
             if (move != Vector2.zero)
@@ -42,11 +46,32 @@ namespace Player
             RuntimeData = new PlayerRuntimeData();
 
             Stats.Initialize();
+            Buffs = new BuffController(Stats);
             RuntimeData.InitializeRun();
             Input.Initialize();
             Move.Initialize();
             Visual.Initialize();
             CurrentHp = Stats.MaxHp;
+        }
+
+        public BuffInstance ApplyBuff(BuffData buffData, object source = null)
+        {
+            return Buffs?.ApplyBuff(buffData, source);
+        }
+
+        public void RemoveBuffsFromSource(object source)
+        {
+            Buffs?.RemoveBuffsFromSource(source);
+        }
+
+        public void ClearBuffs()
+        {
+            Buffs?.Clear();
+        }
+
+        public void RefillHealthToMax()
+        {
+            CurrentHp = MaxHp;
         }
 
         private void OnEnable()

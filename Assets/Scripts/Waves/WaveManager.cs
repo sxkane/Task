@@ -36,11 +36,15 @@ namespace Waves
         private float _timer;
         private int _lastSecond = -1;
         private bool _isActive;
+        private bool _isCompleting;
         private bool _bossSpawned;
+        private int _spawnGeneration;
         private readonly List<int> _spawnWeightBuffer = new();
 
         public EnemyManager EnemyManager { get; private set; }
         public int CurrentWave { get; private set; }
+        public bool IsFinalWave => CurrentWave >= _waves.Count - 1;
+        public bool BossSpawned => _bossSpawned;
         public Action<bool> OnWaveCompleted;
 
         #endregion
@@ -89,6 +93,8 @@ namespace Waves
             _lastSecond = -1;
             _isActive = false;
             _bossSpawned = false;
+            _isCompleting = false;
+            _spawnGeneration = 0;
             _spawnWeightBuffer.Clear();
         }
 
@@ -103,6 +109,8 @@ namespace Waves
             _spawnProgress = 0f;
             _lastSecond = -1;
             _bossSpawned = false;
+            _isCompleting = false;
+            _spawnGeneration++;
             _spawnWeightBuffer.Clear();
         }
 
@@ -114,6 +122,15 @@ namespace Waves
         public void EndPhase()
         {
             _isActive = false;
+            _isCompleting = false;
+            _spawnGeneration++;
+        }
+
+        public void CompletePhase()
+        {
+            _isActive = false;
+            _isCompleting = true;
+            _spawnGeneration++;
         }
 
         public void ResumePhase()
@@ -131,6 +148,8 @@ namespace Waves
             _spawnProgress = 0f;
             _lastSecond = -1;
             _bossSpawned = false;
+            _isCompleting = false;
+            _spawnGeneration++;
             _isActive = true;
         }
 
@@ -156,6 +175,12 @@ namespace Waves
 
         private void UpdateSpawner(WaveConfig wave)
         {
+            if (_isCompleting)
+                return;
+
+            if (wave.duration - _timer <= 1f)
+                return;
+
             var normalizedTime = GetNormalizedWaveTime(wave);
             var spawnRate = wave.EvaluateSpawnRate(normalizedTime);
             if (spawnRate <= 0f)
@@ -181,6 +206,9 @@ namespace Waves
 
         private void UpdateBossSpawn(WaveConfig wave)
         {
+            if (_isCompleting)
+                return;
+
             var normalizedTime = GetNormalizedWaveTime(wave);
             if (!wave.ShouldSpawnBoss(normalizedTime, _bossSpawned))
                 return;
@@ -253,6 +281,8 @@ namespace Waves
             if (player == null || prefab == null || _poolManager == null)
                 return;
 
+            var generation = _spawnGeneration;
+
             if (spawnTelegraphPrefab != null)
             {
                 var telegraphObject = _poolManager.Spawn(
@@ -263,10 +293,19 @@ namespace Waves
                 var telegraph = telegraphObject.GetComponent<SpawnTelegraph>();
                 if (telegraph != null)
                 {
-                    telegraph.Play(() => SpawnEnemyInternal(prefab, position, groupRoot, player.transform));
+                    telegraph.Play(() =>
+                    {
+                        if (_isCompleting || generation != _spawnGeneration)
+                            return;
+
+                        SpawnEnemyInternal(prefab, position, groupRoot, player.transform);
+                    });
                     return;
                 }
             }
+
+            if (_isCompleting || generation != _spawnGeneration)
+                return;
 
             SpawnEnemyInternal(prefab, position, groupRoot, player.transform);
         }

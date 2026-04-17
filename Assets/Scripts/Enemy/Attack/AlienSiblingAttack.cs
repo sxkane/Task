@@ -2,6 +2,7 @@ using Events;
 using Events.EnemyEvents;
 using ObjectPool;
 using UnityEngine;
+using Core;
 
 namespace Enemy.Attack
 {
@@ -45,6 +46,9 @@ namespace Enemy.Attack
         private void OnEnemyDied(OnEnemyDiedEvent e)
         {
             if (Enemy == null || e.Target != Enemy || alienPrefab == null || Enemy.Target == null || Enemy.Context?.EnemyManager == null)
+                return;
+
+            if (GameController.Instance != null && GameController.Instance.IsWaveCompleting)
                 return;
 
             var parent = Enemy.Transform.parent;

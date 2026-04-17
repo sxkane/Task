@@ -1,4 +1,5 @@
 using System;
+using Stats;
 using UnityEngine;
 
 namespace Enemy
@@ -6,53 +7,46 @@ namespace Enemy
     [Serializable]
     public class EnemyStats
     {
-        private float _baseMaxHp;
-        private float _baseMoveSpeed;
-        private float _baseDamage;
-        private float _baseAttackInterval;
-        private float _baseKnockbackResistance;
-        private float _baseCoinReward;
-        private float _baseExpReward;
+        private readonly Stat _maxHpStat = new(0f);
+        private readonly Stat _moveSpeedStat = new(0f);
+        private readonly Stat _damageStat = new(0f);
+        private readonly Stat _attackIntervalStat = new(1f);
+        private readonly Stat _knockbackResistanceStat = new(0f);
+        private readonly Stat _coinRewardStat = new(0f);
+        private readonly Stat _expRewardStat = new(0f);
 
-        private float _maxHpMultiplier = 1f;
-        private float _moveSpeedMultiplier = 1f;
-        private float _damageMultiplier = 1f;
-        private float _attackIntervalMultiplier = 1f;
-        private float _supportMaxHpMultiplier = 1f;
-        private float _supportMoveSpeedMultiplier = 1f;
-        private float _supportDamageMultiplier = 1f;
-        private float _supportAttackIntervalMultiplier = 1f;
+        private readonly object _baseMultiplierSource = new();
+        private readonly object _supportAuraSource = new();
 
-        public float MaxHP => _baseMaxHp * _maxHpMultiplier * _supportMaxHpMultiplier;
+        public float MaxHP => _maxHpStat.Value;
         public float CurrentHP { get; private set; }
-        public float MoveSpeed => _baseMoveSpeed * _moveSpeedMultiplier * _supportMoveSpeedMultiplier;
-        public float Damage => _baseDamage * _damageMultiplier * _supportDamageMultiplier;
-        public float AttackInterval => _baseAttackInterval * _attackIntervalMultiplier * _supportAttackIntervalMultiplier;
-        public float KnockbackResistance => _baseKnockbackResistance;
-        public float CoinReward => _baseCoinReward;
-        public float ExpReward => _baseExpReward;
+        public float MoveSpeed => _moveSpeedStat.Value;
+        public float Damage => _damageStat.Value;
+        public float AttackInterval => _attackIntervalStat.Value;
+        public float KnockbackResistance => _knockbackResistanceStat.Value;
+        public float CoinReward => _coinRewardStat.Value;
+        public float ExpReward => _expRewardStat.Value;
         public bool IsAlive => CurrentHP > 0;
 
         public void Initialize(EnemyStatTemplate template, int currentWave)
         {
             var waveNumber = Mathf.Max(1, currentWave);
 
-            _baseMaxHp = template.maxHP + (waveNumber - 1) * template.hpPerWave;
-            _baseMoveSpeed = template.moveSpeed;
-            _baseDamage = template.damage + (waveNumber - 1) * template.damagePerWave;
-            _baseAttackInterval = template.attackInterval;
-            _baseKnockbackResistance = template.knockbackResistance;
-            _baseCoinReward = template.coinReward;
-            _baseExpReward = template.expReward;
+            _maxHpStat.BaseValue = template.maxHP + (waveNumber - 1) * template.hpPerWave;
+            _moveSpeedStat.BaseValue = template.moveSpeed;
+            _damageStat.BaseValue = template.damage + (waveNumber - 1) * template.damagePerWave;
+            _attackIntervalStat.BaseValue = template.attackInterval;
+            _knockbackResistanceStat.BaseValue = template.knockbackResistance;
+            _coinRewardStat.BaseValue = template.coinReward;
+            _expRewardStat.BaseValue = template.expReward;
 
-            _maxHpMultiplier = 1f;
-            _moveSpeedMultiplier = 1f;
-            _damageMultiplier = 1f;
-            _attackIntervalMultiplier = 1f;
-            _supportMaxHpMultiplier = 1f;
-            _supportMoveSpeedMultiplier = 1f;
-            _supportDamageMultiplier = 1f;
-            _supportAttackIntervalMultiplier = 1f;
+            _maxHpStat.ClearModifiers();
+            _moveSpeedStat.ClearModifiers();
+            _damageStat.ClearModifiers();
+            _attackIntervalStat.ClearModifiers();
+            _knockbackResistanceStat.ClearModifiers();
+            _coinRewardStat.ClearModifiers();
+            _expRewardStat.ClearModifiers();
 
             CurrentHP = MaxHP;
         }
@@ -66,10 +60,11 @@ namespace Enemy
         {
             var healthPercent = MaxHP <= 0f ? 1f : CurrentHP / MaxHP;
 
-            _maxHpMultiplier = Mathf.Max(0f, maxHpMultiplier);
-            _moveSpeedMultiplier = Mathf.Max(0f, moveSpeedMultiplier);
-            _damageMultiplier = Mathf.Max(0f, damageMultiplier);
-            _attackIntervalMultiplier = Mathf.Max(0.05f, attackIntervalMultiplier);
+            RemoveModifiersFromSource(_baseMultiplierSource);
+            AddMultiplier(_maxHpStat, maxHpMultiplier, _baseMultiplierSource);
+            AddMultiplier(_moveSpeedStat, moveSpeedMultiplier, _baseMultiplierSource);
+            AddMultiplier(_damageStat, damageMultiplier, _baseMultiplierSource);
+            AddMultiplier(_attackIntervalStat, attackIntervalMultiplier, _baseMultiplierSource);
 
             if (preserveHealthPercent)
                 CurrentHP = MaxHP * healthPercent;
@@ -86,10 +81,11 @@ namespace Enemy
         {
             var healthPercent = MaxHP <= 0f ? 1f : CurrentHP / MaxHP;
 
-            _supportMaxHpMultiplier = Mathf.Max(0f, maxHpMultiplier);
-            _supportMoveSpeedMultiplier = Mathf.Max(0f, moveSpeedMultiplier);
-            _supportDamageMultiplier = Mathf.Max(0f, damageMultiplier);
-            _supportAttackIntervalMultiplier = Mathf.Max(0.05f, attackIntervalMultiplier);
+            RemoveModifiersFromSource(_supportAuraSource);
+            AddMultiplier(_maxHpStat, maxHpMultiplier, _supportAuraSource);
+            AddMultiplier(_moveSpeedStat, moveSpeedMultiplier, _supportAuraSource);
+            AddMultiplier(_damageStat, damageMultiplier, _supportAuraSource);
+            AddMultiplier(_attackIntervalStat, attackIntervalMultiplier, _supportAuraSource);
 
             if (preserveHealthPercent)
                 CurrentHP = MaxHP * healthPercent;
@@ -105,10 +101,10 @@ namespace Enemy
             bool preserveHealthPercent = true)
         {
             SetMultipliers(
-                _maxHpMultiplier * maxHpMultiplier,
-                _moveSpeedMultiplier * moveSpeedMultiplier,
-                _damageMultiplier * damageMultiplier,
-                _attackIntervalMultiplier * attackIntervalMultiplier,
+                maxHpMultiplier,
+                moveSpeedMultiplier,
+                damageMultiplier,
+                attackIntervalMultiplier,
                 preserveHealthPercent);
         }
 
@@ -120,6 +116,41 @@ namespace Enemy
         public void Heal(float amount)
         {
             CurrentHP = Mathf.Min(MaxHP, CurrentHP + amount);
+        }
+
+        public Stat GetStat(EnemyStatType statType)
+        {
+            return statType switch
+            {
+                EnemyStatType.MaxHP => _maxHpStat,
+                EnemyStatType.MoveSpeed => _moveSpeedStat,
+                EnemyStatType.Damage => _damageStat,
+                EnemyStatType.AttackInterval => _attackIntervalStat,
+                EnemyStatType.KnockbackResistance => _knockbackResistanceStat,
+                EnemyStatType.CoinReward => _coinRewardStat,
+                EnemyStatType.ExpReward => _expRewardStat,
+                _ => throw new ArgumentOutOfRangeException(nameof(statType), statType, null)
+            };
+        }
+
+        public void RemoveModifiersFromSource(object source)
+        {
+            _maxHpStat.RemoveModifiersFromSource(source);
+            _moveSpeedStat.RemoveModifiersFromSource(source);
+            _damageStat.RemoveModifiersFromSource(source);
+            _attackIntervalStat.RemoveModifiersFromSource(source);
+            _knockbackResistanceStat.RemoveModifiersFromSource(source);
+            _coinRewardStat.RemoveModifiersFromSource(source);
+            _expRewardStat.RemoveModifiersFromSource(source);
+        }
+
+        private static void AddMultiplier(Stat stat, float multiplier, object source)
+        {
+            var clampedMultiplier = Mathf.Max(0f, multiplier);
+            if (Mathf.Approximately(clampedMultiplier, 1f))
+                return;
+
+            stat.AddModifier(new Modifier(clampedMultiplier - 1f, StatModType.PercentMult, source));
         }
     }
 }

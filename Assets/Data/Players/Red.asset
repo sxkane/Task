@@ -15,7 +15,7 @@ MonoBehaviour:
   playerID: 1
   playerName: Red
   playerIcon: {fileID: 6257046027232108077, guid: 19d5e7c24f5f4e24b8cd30a52bad94e0, type: 3}
-  summary: 
+  summary: "\u8FD1\u8DDD\u79BB\u538B\u5236\u578B\u89D2\u8272\u3002\u62E5\u6709\u66F4\u9AD8\u7684\u8FD1\u6218\u4F24\u5BB3\u3001\u66F4\u539A\u7684\u751F\u547D\u4E0E\u62A4\u7532\uFF0C\u9002\u5408\u6B63\u9762\u7F20\u6597\u4E0E\u6301\u7EED\u63A8\u8FDB"
   playerStats:
     MaxHpStat:
       baseValue: 10
@@ -50,6 +50,7 @@ MonoBehaviour:
     MaxWeaponsStat:
       baseValue: 6
   playerPrefab: {fileID: 8719565624045311067, guid: 5f153fb2ca7b1454692878f94df56a76, type: 3}
+  passiveData: {fileID: 11400000, guid: 1d7d6febcd6ae17499b925266910f526, type: 2}
   starterWeapons:
   - weaponData: {fileID: 11400000, guid: b51c1ca2b118a544dbe9f2346ae356af, type: 2}
     rarity: 0

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48dd2a8fa2bc567499626d5cf9f4792b, type: 3}
+  m_Name: Green
+  m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerPassiveData
+  passiveId: 2
+  displayName: "\u8FDC\u7A0B\u578B"
+  modifiers:
+  - statType: 7
+    value: 6
+    modifierType: 0
+  - statType: 9
+    value: 0.15
+    modifierType: 0
+  - statType: 11
+    value: 20
+    modifierType: 0

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Enemy.Buffs;
+using Stats;
 using UnityEngine;
 
 namespace Enemy.Attack
@@ -8,18 +10,22 @@ namespace Enemy.Attack
         [Header("Movement")]
         [SerializeField] private float fleeDistance = 6f;
         [SerializeField] private float idleDistance = 8f;
-        [SerializeField] private float movementDecisionCooldown = 0.4f;
+        [SerializeField] private float teleportCooldown = 0.4f;
+        [SerializeField] private float minTeleportDistance = 2.5f;
+        [SerializeField] private float maxTeleportDistance = 4.5f;
+        [SerializeField] private float teleportScatterRadius = 1f;
 
         [Header("Aura")]
         [SerializeField] private float auraRadius = 6f;
         [SerializeField] private float refreshInterval = 0.2f;
+        [SerializeField] private EnemyBuffData auraBuffData;
 
         private readonly List<EnemyController> _results = new();
         private readonly List<EnemyController> _toRemove = new();
         private readonly HashSet<EnemyController> _buffedTargets = new();
         private float _refreshTimer;
-        private float _movementDecisionTimer;
-        private Vector2 _cachedMoveDirection;
+        private float _teleportTimer;
+        private EnemyBuffData _runtimeAuraBuffData;
 
         public override bool UsesAttackState => false;
         public override bool ShouldStopMovementDuringAttack => false;
@@ -28,8 +34,8 @@ namespace Enemy.Attack
         {
             base.OnInitialized();
             _refreshTimer = 0f;
-            _movementDecisionTimer = 0f;
-            _cachedMoveDirection = Vector2.zero;
+            _teleportTimer = 0f;
+            EnsureAuraBuffData();
             CleanupBuffs();
         }
 
@@ -42,6 +48,8 @@ namespace Enemy.Attack
                 CleanupBuffs();
                 return;
             }
+
+            UpdateTeleport();
 
             _refreshTimer -= Time.deltaTime;
             if (_refreshTimer > 0f)
@@ -58,31 +66,65 @@ namespace Enemy.Attack
 
         protected override void ExecuteAttack()
         {
-            
         }
 
         public override Vector2 GetMovementDirection(Vector2 currentPosition, Vector2 targetPosition)
         {
-            _movementDecisionTimer -= Time.deltaTime;
-            if (_movementDecisionTimer > 0f)
-                return _cachedMoveDirection;
-
-            _movementDecisionTimer = movementDecisionCooldown;
-
-            var away = currentPosition - targetPosition;
-            var distance = away.magnitude;
-            var nextDirection = Vector2.zero;
-
-            if (distance < idleDistance && away.sqrMagnitude > 0.0001f)
-                nextDirection = away.normalized;
-
-            _cachedMoveDirection = Movement.EnemyWorldBounds.ClampDirection(currentPosition, nextDirection, 0.2f);
-            return _cachedMoveDirection;
+            return Vector2.zero;
         }
 
         public override float GetMovementSpeedMultiplier(float distanceToTarget)
         {
-            return distanceToTarget < idleDistance ? 1f : 0f;
+            return 0f;
+        }
+
+        private void UpdateTeleport()
+        {
+            if (Enemy.Target == null || Enemy.Rigidbody == null)
+                return;
+
+            _teleportTimer -= Time.deltaTime;
+            if (_teleportTimer > 0f)
+                return;
+
+            var currentPosition = Enemy.Rigidbody.position;
+            var targetPosition = (Vector2)Enemy.Target.position;
+            var away = currentPosition - targetPosition;
+            var distance = away.magnitude;
+
+            if (distance >= idleDistance)
+                return;
+
+            _teleportTimer = teleportCooldown;
+            TeleportAway(currentPosition, targetPosition, away);
+        }
+
+        private void TeleportAway(Vector2 currentPosition, Vector2 targetPosition, Vector2 away)
+        {
+            var awayDirection = away.sqrMagnitude <= 0.0001f
+                ? Random.insideUnitCircle.normalized
+                : away.normalized;
+
+            if (awayDirection.sqrMagnitude <= 0.0001f)
+                awayDirection = Vector2.right;
+
+            var teleportDistance = Random.Range(minTeleportDistance, maxTeleportDistance);
+            var candidate = currentPosition
+                            + awayDirection * teleportDistance
+                            + Random.insideUnitCircle * teleportScatterRadius;
+            candidate = Movement.EnemyWorldBounds.Clamp(candidate);
+
+            var toTarget = candidate - targetPosition;
+            if (toTarget.magnitude < fleeDistance)
+            {
+                var fallbackDirection = toTarget.sqrMagnitude <= 0.0001f ? awayDirection : toTarget.normalized;
+                candidate = targetPosition + fallbackDirection * fleeDistance;
+                candidate = Movement.EnemyWorldBounds.Clamp(candidate);
+            }
+
+            Enemy.Rigidbody.position = candidate;
+            Enemy.Transform.position = candidate;
+            Enemy.Rigidbody.linearVelocity = Vector2.zero;
         }
 
         private void RefreshAura()
@@ -100,7 +142,11 @@ namespace Enemy.Attack
             {
                 var target = _toRemove[i];
                 if (target != null)
+                {
                     target.RemoveUndeadMageSource(Enemy);
+                    target.RemoveBuffsFromSource(Enemy);
+                }
+
                 _buffedTargets.Remove(target);
             }
 
@@ -111,13 +157,26 @@ namespace Enemy.Attack
                     continue;
 
                 if (_buffedTargets.Add(target))
+                {
                     target.AddUndeadMageSource(Enemy);
+                    target.ApplyBuff(GetAuraBuffData(), Enemy);
+                }
+                else
+                {
+                    target.ApplyBuff(GetAuraBuffData(), Enemy);
+                }
             }
         }
 
         private void OnDisable()
         {
             CleanupBuffs();
+
+            if (_runtimeAuraBuffData != null)
+            {
+                Destroy(_runtimeAuraBuffData);
+                _runtimeAuraBuffData = null;
+            }
         }
 
         private void CleanupBuffs()
@@ -128,10 +187,38 @@ namespace Enemy.Attack
             foreach (var target in _buffedTargets)
             {
                 if (target != null)
+                {
                     target.RemoveUndeadMageSource(Enemy);
+                    target.RemoveBuffsFromSource(Enemy);
+                }
             }
 
             _buffedTargets.Clear();
+        }
+
+        private EnemyBuffData GetAuraBuffData()
+        {
+            return auraBuffData != null ? auraBuffData : _runtimeAuraBuffData;
+        }
+
+        private void EnsureAuraBuffData()
+        {
+            if (auraBuffData != null || _runtimeAuraBuffData != null)
+                return;
+
+            _runtimeAuraBuffData = ScriptableObject.CreateInstance<EnemyBuffData>();
+            _runtimeAuraBuffData.name = "UndeadMageAuraRuntime";
+            _runtimeAuraBuffData.hideFlags = HideFlags.HideAndDontSave;
+            _runtimeAuraBuffData.InitializeRuntime(
+                "enemy.undead_mage_aura",
+                refreshInterval * 2f + 0.1f,
+                true,
+                new List<EnemyStatModifierDefinition>
+                {
+                    new() { statType = EnemyStatType.MaxHP, value = 1.5f, modifierType = StatModType.PercentMult },
+                    new() { statType = EnemyStatType.Damage, value = 0.25f, modifierType = StatModType.PercentMult },
+                    new() { statType = EnemyStatType.MoveSpeed, value = 0.5f, modifierType = StatModType.PercentMult }
+                });
         }
     }
 }

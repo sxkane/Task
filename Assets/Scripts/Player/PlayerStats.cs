@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using Stats;
+using Stats.Buffs;
 using UnityEngine;
 
 namespace Player
 {
     [Serializable]
-    public class PlayerStats
+    public class PlayerStats : IBuffStatSource
     {
         private Dictionary<StatType, Stat> _statsDict;
-        private Dictionary<StatType, int> _statValueDict;
 
         public void Initialize()
         {
@@ -37,6 +37,22 @@ namespace Player
         
         public Stat GetStat(StatType type) => _statsDict[type];
         public int GetStatValue(StatType type) => Mathf.RoundToInt(_statsDict[type].Value);
+
+        public bool TryGetStat(string statKey, out Stat stat)
+        {
+            stat = null;
+            // Player passive data now uses StatType directly; string-key lookup is reserved for buff-like systems.
+            return false;
+        }
+
+        public void RemoveModifiersFromSource(object source)
+        {
+            foreach (var statDict in _statsDict)
+            {
+                var stat = statDict.Value;
+                stat.RemoveModifiersFromSource(source);
+            }
+        }
 
         #region ===== Survival =====
 

@@ -8,7 +8,7 @@ namespace Stats
     public class Stat
     {
         [SerializeField] private float baseValue;
-        private List<Modifier> _modifiers = new();
+        private readonly List<Modifier> _modifiers = new();
         
         public event Action OnValueChanged;
         
@@ -48,7 +48,23 @@ namespace Stats
             set
             {
                 if (!Mathf.Approximately(baseValue, value))
+                {
                     baseValue = value;
+                    OnValueChanged?.Invoke();
+                }
+            }
+        }
+
+        public float BaseValue
+        {
+            get => baseValue;
+            set
+            {
+                if (!Mathf.Approximately(baseValue, value))
+                {
+                    baseValue = value;
+                    OnValueChanged?.Invoke();
+                }
             }
         }
 
@@ -67,6 +83,12 @@ namespace Stats
         public void RemoveModifiersFromSource(object source)
         {
             _modifiers.RemoveAll(m => m.Source == source);
+            OnValueChanged?.Invoke();
+        }
+
+        public void ClearModifiers()
+        {
+            _modifiers.Clear();
             OnValueChanged?.Invoke();
         }
     }

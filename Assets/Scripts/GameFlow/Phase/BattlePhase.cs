@@ -1,5 +1,6 @@
 using Core;
 using Events;
+using Events.EnemyEvents;
 
 namespace GameFlow.Phase
 {
@@ -40,29 +41,40 @@ namespace GameFlow.Phase
         {
             Game.WaveManager.OnWaveCompleted += WaveComplete;
             EventBus.Subscribe<OnPlayerDiedEvent>(OnPlayerDied);
+            EventBus.Subscribe<OnEnemyDiedEvent>(OnEnemyDied);
         }
 
         private void UnsubscribeEvents()
         {
             Game.WaveManager.OnWaveCompleted -= WaveComplete;
             EventBus.Unsubscribe<OnPlayerDiedEvent>(OnPlayerDied);
+            EventBus.Unsubscribe<OnEnemyDiedEvent>(OnEnemyDied);
         }
 
         private void WaveComplete(bool isFinalWave)
         {
-            if (!isFinalWave)
-                if (Game.UpgradeManager != null && Game.UpgradeManager.HasPendingSelections())
-                    Game.ChangeState(GamePhaseType.Upgrade);
-                else
-                    Game.ChangeState(GamePhaseType.Shop);
-            else
-                Game.ChangeState(GamePhaseType.GameOver);
+            Game.BeginWaveCompletion(isFinalWave);
         }
 
         private void OnPlayerDied(OnPlayerDiedEvent eventData)
         {
             if (Game.PlayerManager?.Player == eventData.Target)
+            {
+                Game.IsVictory = false;
                 Game.ChangeState(GamePhaseType.GameOver);
+            }
+        }
+
+        private void OnEnemyDied(OnEnemyDiedEvent eventData)
+        {
+            if (eventData.Target == null || Game.WaveManager == null)
+                return;
+
+            if (!Game.WaveManager.IsFinalWave || !Game.WaveManager.BossSpawned)
+                return;
+
+            if (Game.WaveManager.EnemyManager != null && Game.WaveManager.EnemyManager.AliveEnemyCount <= 0)
+                Game.BeginWaveCompletion(true);
         }
     }
 }

@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9339c23d374f44a2a570768b6f59ddec, type: 3}
+  m_Name: Blue
+  m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerData
+  playerID: 3
+  playerName: Blue
+  playerIcon: {fileID: 6187166469564620892, guid: afc7a985d1cf375469c5d641306ab52e, type: 3}
+  summary: "\u7206\u53D1\u6210\u957F\u578B\u89D2\u8272\u3002\u62E5\u6709\u66F4\u9AD8\u7684\u5143\u7D20\u4F24\u5BB3\u4E0E\u5C11\u91CF\u901A\u7528\u589E\u4F24\uFF0C\u64C5\u957F\u914D\u5408\u5143\u7D20\u6B66\u5668\u4E0E\u540E\u7EED\u7279\u6548\u6784\u7B51"
+  playerStats:
+    MaxHpStat:
+      baseValue: 10
+    HpRegenStat:
+      baseValue: 0
+    LifeStealStat:
+      baseValue: 0
+    ArmorStat:
+      baseValue: 0
+    DodgeStat:
+      baseValue: 0
+    DamagePercentStat:
+      baseValue: 0
+    MeleeDamageStat:
+      baseValue: 0
+    RangedDamageStat:
+      baseValue: 0
+    ElementalDamageStat:
+      baseValue: 0
+    AttackSpeedStat:
+      baseValue: 0
+    CritChanceStat:
+      baseValue: 3
+    RangeStat:
+      baseValue: 0
+    SpeedStat:
+      baseValue: 0
+    LuckStat:
+      baseValue: 0
+    HarvestingStat:
+      baseValue: 0
+    MaxWeaponsStat:
+      baseValue: 6
+  playerPrefab: {fileID: 8719565624045311067, guid: 563d5c76eddac084d90ba4a8b04c7b43, type: 3}
+  passiveData: {fileID: 11400000, guid: 38de297b94fe7c54aa34770936a1f768, type: 2}
+  starterWeapons:
+  - weaponData: {fileID: 11400000, guid: b51c1ca2b118a544dbe9f2346ae356af, type: 2}
+    rarity: 0

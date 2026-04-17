@@ -1,10 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using Events;
-using Events.EnemyEvents;
 using GameFlow;
 using GameFlow.Phase;
 using Player;
+using Drops;
 using Rewards.Shops;
 using Rewards.Upgrades;
 using UI.GameSceneUI;
@@ -34,6 +34,7 @@ namespace Core
         [SerializeField] private PlayerManager playerManager;
         [SerializeField] private WeaponManager weaponManager;
         [SerializeField] private ItemManager itemManager;
+        [SerializeField] private EnemyDropManager enemyDropManager;
         [SerializeField] private WaveManager waveManager;
         [SerializeField] private UpgradeManager upgradeManager;
         [SerializeField] private ShopManager shopManager;
@@ -56,13 +57,17 @@ namespace Core
         public PlayerManager PlayerManager { get; private set; }
         public WeaponManager WeaponManager { get; private set; }
         public ItemManager ItemManager { get; private set; }
+        public EnemyDropManager EnemyDropManager { get; private set; }
         public WaveManager WaveManager { get; private set; }
         public UpgradeManager UpgradeManager { get; private set; }
         public ShopManager ShopManager { get; private set; }
+        public bool IsVictory { get; set; }
+        public bool IsWaveCompleting { get; private set; }
 
         public event Action<GamePhaseType> OnPhaseChanged;
 
         private float _nextPauseToggleTime;
+        private Coroutine _waveCompletionRoutine;
 
         #endregion
 
@@ -96,7 +101,6 @@ namespace Core
 
         private void OnDestroy()
         {
-            EventBus.Unsubscribe<OnEnemyDiedEvent>(OnEnemyDied);
         }
 
         private void Update()
@@ -117,6 +121,7 @@ namespace Core
             PlayerManager = playerManager != null ? playerManager : GetComponent<PlayerManager>();
             WeaponManager = weaponManager != null ? weaponManager : GetComponent<WeaponManager>();
             ItemManager = itemManager != null ? itemManager : GetComponent<ItemManager>();
+            EnemyDropManager = enemyDropManager != null ? enemyDropManager : GetComponent<EnemyDropManager>();
             WaveManager = waveManager != null ? waveManager : GetComponent<WaveManager>();
             UpgradeManager = upgradeManager != null ? upgradeManager : GetComponent<UpgradeManager>();
             ShopManager = shopManager != null ? shopManager : GetComponent<ShopManager>();
@@ -127,6 +132,7 @@ namespace Core
             WaveManager?.Configure(Session, PlayerManager);
             WeaponManager?.Configure(Session, PlayerManager, WaveManager);
             ItemManager?.Configure(PlayerManager);
+            EnemyDropManager?.Configure(Session, PlayerManager);
             UpgradeManager?.Configure(PlayerManager, WaveManager);
             ShopManager?.Configure(PlayerManager, WeaponManager, WaveManager);
             GameInputHandler?.Configure(this);
@@ -143,17 +149,18 @@ namespace Core
 
             SelectedPlayer = Session.SelectedPlayer;
             SelectedWeapons = Session.SelectedWeapons ?? new List<WeaponEntry>();
+            IsVictory = false;
+            IsWaveCompleting = false;
 
             PlayerManager?.InitializeRun(SelectedPlayer);
             WaveManager?.InitializeRun();
             WeaponManager?.InitializeRun(SelectedWeapons);
             ItemManager?.InitializeRun();
+            EnemyDropManager?.InitializeRun();
             UpgradeManager?.InitializeRun();
             ShopManager?.InitializeRun();
             GameInputHandler?.InitializeRun();
             gameUIManager?.InitializeRun(PlayerManager);
-
-            EventBus.Subscribe<OnEnemyDiedEvent>(OnEnemyDied);
         }
 
         public void BeginPhase(GamePhaseType phaseType)
@@ -167,11 +174,10 @@ namespace Core
             if (StateMachine?.CurrentPhase != null)
                 StateMachine.CurrentPhase.Exit();
 
-            EventBus.Unsubscribe<OnEnemyDiedEvent>(OnEnemyDied);
-
             gameUIManager?.ResetRun();
             ShopManager?.ResetRun();
             UpgradeManager?.ResetRun();
+            EnemyDropManager?.ResetRun();
             WeaponManager?.ResetRun();
             ItemManager?.ResetRun();
             WaveManager?.ResetRun();
@@ -179,6 +185,8 @@ namespace Core
             GameInputHandler?.ResetRun();
 
             _nextPauseToggleTime = 0f;
+            IsVictory = false;
+            IsWaveCompleting = false;
             StateMachine = null;
             SelectedPlayer = null;
             SelectedWeapons = null;
@@ -266,16 +274,55 @@ namespace Core
             PlayerManager?.Player?.Input?.DisableInput();
         }
 
-        #endregion
-
-        private void OnEnemyDied(OnEnemyDiedEvent eventData)
+        public void BeginWaveCompletion(bool isFinalWave)
         {
-            var runtimeData = PlayerManager?.Player?.RuntimeData;
-            if (runtimeData == null || eventData.Target == null)
+            if (_waveCompletionRoutine != null)
                 return;
 
-            runtimeData.AddCoins(Mathf.RoundToInt(eventData.Target.Stats.CoinReward));
-            runtimeData.AddExperience(Mathf.RoundToInt(eventData.Target.Stats.ExpReward));
+            IsWaveCompleting = true;
+            _waveCompletionRoutine = StartCoroutine(WaveCompletionRoutine(isFinalWave));
         }
+
+        private IEnumerator WaveCompletionRoutine(bool isFinalWave)
+        {
+            DisablePlayerInput();
+            WaveManager?.CompletePhase();
+            WeaponManager?.EndPhase();
+
+            EnemyDropManager?.AttractAllDropsToPlayer();
+            WaveManager?.EnemyManager?.ClearAllEnemies();
+
+            var timeout = 2.5f;
+            while (timeout > 0f)
+            {
+                EnemyDropManager?.AttractAllDropsToPlayer();
+
+                var hasEnemies = WaveManager?.EnemyManager != null && WaveManager.EnemyManager.AliveEnemyCount > 0;
+                var hasDrops = EnemyDropManager != null && EnemyDropManager.HasActiveDrops();
+                if (!hasEnemies && !hasDrops)
+                    break;
+
+                timeout -= Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            _waveCompletionRoutine = null;
+            IsWaveCompleting = false;
+            IsVictory = isFinalWave;
+
+            if (!isFinalWave)
+            {
+                if (UpgradeManager != null && UpgradeManager.HasPendingSelections())
+                    ChangeState(GamePhaseType.Upgrade);
+                else
+                    ChangeState(GamePhaseType.Shop);
+            }
+            else
+            {
+                ChangeState(GamePhaseType.GameOver);
+            }
+        }
+
+        #endregion
     }
 }

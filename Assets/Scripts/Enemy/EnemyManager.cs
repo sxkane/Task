@@ -38,8 +38,9 @@ namespace Enemy
             EnemyController target = null;
             var distance = float.MaxValue;
 
-            foreach (var enemy in _enemies)
+            for (var i = 0; i < _enemies.Count; i++)
             {
+                var enemy = _enemies[i];
                 if (!IsEnemyValid(enemy))
                     continue;
 
@@ -81,8 +82,9 @@ namespace Enemy
             results.Clear();
             var sqrRadius = radius * radius;
 
-            foreach (var enemy in _enemies)
+            for (var i = 0; i < _enemies.Count; i++)
             {
+                var enemy = _enemies[i];
                 if (!IsEnemyValid(enemy))
                     continue;
 
@@ -94,8 +96,9 @@ namespace Enemy
 
         public void ClearAllEnemies()
         {
-            foreach (var enemy in _enemies)
+            for (var i = _enemies.Count - 1; i >= 0; i--)
             {
+                var enemy = _enemies[i];
                 if (IsEnemyValid(enemy))
                     enemy.TakeDamage(100000f);
             }

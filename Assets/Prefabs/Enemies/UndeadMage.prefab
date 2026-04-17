@@ -341,7 +341,7 @@ MonoBehaviour:
   hpBar: {fileID: 4533513545701156318}
   hpFillImage: {fileID: 1253916415071160646}
   worldOffset: {x: -1.2, y: 1.4, z: 0}
-  hideWhenFull: 1
+  visibleDuration: 2
 --- !u!1 &5301764709589745026
 GameObject:
   m_ObjectHideFlags: 0
@@ -659,6 +659,7 @@ MonoBehaviour:
   buffOutlineRoot: {fileID: 6152719209866557123}
   buffOutlineRenderers:
   - {fileID: 5022284159320298718}
+  deathStateName: Dead
 --- !u!114 &8243563273868732303
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -819,6 +820,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Enemy.Attack.UndeadMageAttack
   fleeDistance: 5
   idleDistance: 3
-  movementDecisionCooldown: 0.4
+  teleportCooldown: 0.4
+  minTeleportDistance: 2.5
+  maxTeleportDistance: 4.5
+  teleportScatterRadius: 1
   auraRadius: 5
   refreshInterval: 0.2
+  auraBuffData: {fileID: 11400000, guid: 6d637e510e822b54dbd15c68fd2c6c6a, type: 2}

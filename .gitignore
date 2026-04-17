@@ -101,3 +101,5 @@ InitTestScene*.unity*
 # idea
 .idea/
 /Assets/Arts/
+/Assets/_Recovery
+/Assets/_Recovery.meta

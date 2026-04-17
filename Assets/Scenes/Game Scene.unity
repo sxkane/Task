@@ -3642,6 +3642,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UI.GameSceneUI.PausePanel
   resumeButton: {fileID: 307952424}
   returnToMenuButton: {fileID: 603583126}
+  restartButton: {fileID: 442153946}
   attributePage: {fileID: 2061987512}
 --- !u!114 &951989404
 MonoBehaviour:
@@ -6686,6 +6687,7 @@ GameObject:
   - component: {fileID: 1541258987}
   - component: {fileID: 1541258986}
   - component: {fileID: 1541258985}
+  - component: {fileID: 1541258988}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -6766,6 +6768,7 @@ MonoBehaviour:
   playerManager: {fileID: 1541258982}
   weaponManager: {fileID: 1541258981}
   itemManager: {fileID: 1541258980}
+  enemyDropManager: {fileID: 0}
   waveManager: {fileID: 1541258979}
   upgradeManager: {fileID: 1541258986}
   shopManager: {fileID: 1541258987}
@@ -6825,6 +6828,23 @@ MonoBehaviour:
   gameDatabase: {fileID: 11400000, guid: dc61e297b8f587540858a0f211ebdb66, type: 2}
   refreshCostStep: 1
   offerCount: 4
+--- !u!114 &1541258988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1541258977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bfb35af8722b724ea506fcbaf3e45ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drops.EnemyDropManager
+  dropPrefab: {fileID: 4889136223145978410, guid: 9afdea0bd59c9e74abb5514c88a30f4b, type: 3}
+  minDropCount: 1
+  maxDropCount: 3
+  rewardPerExtraDrop: 20
+  scatterRadius: 0.5
 --- !u!1 &1569791799
 GameObject:
   m_ObjectHideFlags: 0

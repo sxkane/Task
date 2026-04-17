@@ -47,6 +47,18 @@ MonoBehaviour:
     weight: 1
   - enemyPrefab: {fileID: 8132028160568054564, guid: fcda8448d40a81342b1c307c2526c85f, type: 3}
     weight: 1
+  - enemyPrefab: {fileID: 8132028160568054564, guid: 34510ac20478c694095bfcb38a42f2c3, type: 3}
+    weight: 1
+  - enemyPrefab: {fileID: 8132028160568054564, guid: a5a4fbffac05efb498c43c8a18664030, type: 3}
+    weight: 1
+  - enemyPrefab: {fileID: 8132028160568054564, guid: 476a7ccdff0174941a443f88a26ce966, type: 3}
+    weight: 1
+  - enemyPrefab: {fileID: 8132028160568054564, guid: 3fe3644a4478f644fa617aac30a7a36d, type: 3}
+    weight: 1
+  - enemyPrefab: {fileID: 8132028160568054564, guid: 57dd02fa2f1f1024cb1eeb8146e64459, type: 3}
+    weight: 1
+  - enemyPrefab: {fileID: 8132028160568054564, guid: f361070e1f194c24ab1191abbe529351, type: 3}
+    weight: 1
   spawnWindows: []
   boss:
     enabled: 1
