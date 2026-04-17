@@ -1,62 +1,41 @@
 using Enemy;
-using Events;
-using Events.EnemyEvents;
-using ObjectPool;
 using Player;
-using Stats;
 using UnityEngine;
 using Weapons.Effects;
 
 namespace Weapons.FireBall
 {
-    public class FireBallBullet : MonoBehaviour
+    public class FireBallBullet : WeaponProjectile
     {
         [Header("Movement")]
         [SerializeField] private float turnRate = 360f;
         [SerializeField] private float retargetInterval = 0.4f;
-        [SerializeField] private float lifetime = 5f;
 
         private Transform _target;
         private Weapon _ownerWeapon;
-        private Vector3 _dir;
-        private WeaponStats _stats;
+        private Vector3 _direction;
         private float _bulletSpeed;
         private float _retargetTimer;
 
-        [Header("Runtime References")]
-        private PlayerController _player;
-        private EnemyManager _enemyManager;
-
         public void Init(Weapon ownerWeapon, WeaponStats stats, float bulletSpeed, PlayerController player, EnemyManager enemyManager)
         {
-            CancelInvoke();
+            InitializeProjectile(player, stats, enemyManager);
 
             _ownerWeapon = ownerWeapon;
-            _stats = stats;
             _bulletSpeed = bulletSpeed;
-            _player = player;
-            _enemyManager = enemyManager;
             _target = null;
             _retargetTimer = 0f;
 
-            var enemy = _enemyManager.GetNearestEnemy(_player.transform.position);
-
+            var enemy = EnemyManager.GetNearestEnemy(Player.transform.position);
             if (enemy != null)
             {
                 _target = enemy.transform;
-                _dir = (_target.position - transform.position).normalized;
+                _direction = (_target.position - transform.position).normalized;
             }
             else
             {
-                _dir = transform.up;
+                _direction = transform.up;
             }
-
-            Invoke(nameof(ReturnToPool), lifetime);
-        }
-
-        private void OnDisable()
-        {
-            CancelInvoke();
         }
 
         private void Update()
@@ -71,13 +50,11 @@ namespace Weapons.FireBall
                 return;
 
             _retargetTimer += Time.deltaTime;
-
-            if (_retargetTimer < retargetInterval)
+            if (_retargetTimer < retargetInterval || EnemyManager == null || Player == null)
                 return;
 
-            _retargetTimer = 0;
-
-            var enemy = _enemyManager.GetNearestEnemy(_player.transform.position);
+            _retargetTimer = 0f;
+            var enemy = EnemyManager.GetNearestEnemy(Player.transform.position);
             if (enemy != null)
                 _target = enemy.transform;
         }
@@ -86,43 +63,30 @@ namespace Weapons.FireBall
         {
             if (_target != null)
             {
-                Vector2 desiredDir =
-                    ((Vector2)_target.position - (Vector2)transform.position).normalized;
-
-                _dir = Vector3.RotateTowards(
-                    _dir,
-                    desiredDir,
+                var desiredDirection = ((Vector2)_target.position - (Vector2)transform.position).normalized;
+                _direction = Vector3.RotateTowards(
+                    _direction,
+                    desiredDirection,
                     turnRate * Mathf.Deg2Rad * Time.deltaTime,
                     0f);
             }
 
-            transform.position += _dir * (_bulletSpeed * Time.deltaTime);
-            transform.up = _dir;
-        }
-
-        private void ReturnToPool()
-        {
-            PoolManager.Instance.Despawn(gameObject);
+            transform.position += _direction * (_bulletSpeed * Time.deltaTime);
+            transform.up = _direction;
         }
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
-            var enemy = collision.GetComponent<EnemyController>();
-            if (enemy == null)
+            if (!TryHitEnemy(collision, out var enemy))
                 return;
 
-            var playerStats = _player.Stats;
-            int damage = DamageCalculator.CalculateBaseDamage(playerStats, _stats);
-
-            if (Random.value < playerStats.CritChance + _stats.critChance)
-                damage = Mathf.RoundToInt(damage * _stats.critDamage);
-            
-            EventBus.Publish(new OnEnemyDamageRequestedEvent(enemy, damage));
+            var damage = CalculateDamage();
+            PublishDamage(enemy, damage, _direction);
 
             var effectContext = EffectExecutionContext.ForWeaponHit(
-                _player,
+                Player,
                 _ownerWeapon,
-                _enemyManager,
+                EnemyManager,
                 enemy,
                 transform.position);
             _ownerWeapon?.ExecuteEffects(EffectTrigger.OnWeaponHit, effectContext);

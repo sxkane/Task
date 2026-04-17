@@ -6705,10 +6705,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c65a1a5999184e5997e4b187fd7d2c6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Waves.WaveManager
-  waves:
-  - {fileID: 11400000, guid: eed967d79e92f984e9c76e2d3b642990, type: 2}
-  - {fileID: 11400000, guid: eed967d79e92f984e9c76e2d3b642990, type: 2}
-  spawnRadius: 14
+  spawnMin: {x: -17, y: -10}
+  spawnMax: {x: 17, y: 8}
+  spawnTelegraphPrefab: {fileID: 1658524687665053740, guid: 519db6f15aac8ad4099608526fcb54d3, type: 3}
+  waveDatabase: {fileID: 11400000, guid: a3600663f4aee5a4889033d3d507357d, type: 2}
 --- !u!114 &1541258980
 MonoBehaviour:
   m_ObjectHideFlags: 0

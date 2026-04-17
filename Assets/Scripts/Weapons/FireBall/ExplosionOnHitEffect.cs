@@ -64,7 +64,8 @@ namespace Weapons.FireBall
                 if (enemy == null)
                     continue;
 
-                EventBus.Publish(new OnEnemyDamageRequestedEvent(enemy, explosionDamage));
+                var knockbackDirection = ((Vector2)enemy.transform.position - center).normalized;
+                EventBus.Publish(new OnEnemyDamageRequestedEvent(enemy, explosionDamage, knockbackDirection, 0f));
 
                 if (burn != null && burn.tickDamage > 0 && burn.tickCount > 0)
                     EffectRuntimeRunner.BeginRoutine(ApplyBurn(enemy, burn.tickDamage, burn.tickCount));

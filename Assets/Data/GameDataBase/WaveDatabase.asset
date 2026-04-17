@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: WaveDatabase
   m_EditorClassIdentifier: Assembly-CSharp::Data.WaveDatabase
   waves:
-  - {fileID: 11400000, guid: eed967d79e92f984e9c76e2d3b642990, type: 2}
-  - {fileID: 11400000, guid: e8e668b09e8f57c44986341d0fa25918, type: 2}
-  - {fileID: 11400000, guid: 6a859fb841a32324aa73fafda74c459b, type: 2}
+  - {fileID: 11400000, guid: 1f48f326612d203489857d9f3cd3930f, type: 2}
+  - {fileID: 11400000, guid: 0d3e7bf5f1a5c3746aa73ff643243ade, type: 2}
+  - {fileID: 11400000, guid: 0d3e7bf5f1a5c3746aa73ff643243ade, type: 2}

@@ -14,8 +14,7 @@ namespace Enemy
                 var count = 0;
                 for (var i = 0; i < _enemies.Count; i++)
                 {
-                    var enemy = _enemies[i];
-                    if (enemy != null && enemy.gameObject.activeInHierarchy && enemy.Stats != null && enemy.Stats.IsAlive)
+                    if (IsEnemyValid(_enemies[i]))
                         count++;
                 }
 
@@ -41,7 +40,7 @@ namespace Enemy
 
             foreach (var enemy in _enemies)
             {
-                if (enemy == null || !enemy.gameObject.activeInHierarchy || enemy.Stats == null || !enemy.Stats.IsAlive)
+                if (!IsEnemyValid(enemy))
                     continue;
 
                 var currentDistance = (position - (Vector2)enemy.transform.position).sqrMagnitude;
@@ -57,10 +56,21 @@ namespace Enemy
 
         public EnemyController GetRandomEnemy()
         {
-            if (_enemies.Count == 0)
-                return null;
+            EnemyController selected = null;
+            var validCount = 0;
 
-            return _enemies[Random.Range(0, _enemies.Count)];
+            for (var i = 0; i < _enemies.Count; i++)
+            {
+                var enemy = _enemies[i];
+                if (!IsEnemyValid(enemy))
+                    continue;
+
+                validCount++;
+                if (Random.Range(0, validCount) == 0)
+                    selected = enemy;
+            }
+
+            return selected;
         }
 
         public void GetEnemiesInRadius(Vector2 center, float radius, List<EnemyController> results)
@@ -73,7 +83,7 @@ namespace Enemy
 
             foreach (var enemy in _enemies)
             {
-                if (enemy == null || !enemy.gameObject.activeInHierarchy || enemy.Stats == null || !enemy.Stats.IsAlive)
+                if (!IsEnemyValid(enemy))
                     continue;
 
                 var sqrDist = ((Vector2)enemy.transform.position - center).sqrMagnitude;
@@ -86,9 +96,17 @@ namespace Enemy
         {
             foreach (var enemy in _enemies)
             {
-                if (enemy != null && enemy.gameObject.activeInHierarchy && enemy.Stats != null && enemy.Stats.IsAlive)
+                if (IsEnemyValid(enemy))
                     enemy.TakeDamage(100000f);
             }
+        }
+
+        private static bool IsEnemyValid(EnemyController enemy)
+        {
+            return enemy != null
+                   && enemy.gameObject.activeInHierarchy
+                   && enemy.Stats != null
+                   && enemy.Stats.IsAlive;
         }
     }
 }

@@ -41,7 +41,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   maxEnemiesAlive: 60
   enemyPool:
-  - enemyPrefab: {fileID: 8132028160568054564, guid: 57dd02fa2f1f1024cb1eeb8146e64459, type: 3}
+  - enemyPrefab: {fileID: 8132028160568054564, guid: 3fe3644a4478f644fa617aac30a7a36d, type: 3}
     weight: 1
   spawnWindows: []
   boss:

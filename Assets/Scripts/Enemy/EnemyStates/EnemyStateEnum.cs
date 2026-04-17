@@ -2,7 +2,9 @@
 {
     public enum EnemyStateEnum
     {
+        Spawning,
         Move,
-        Attack
+        Attack,
+        Dying
     }
 }

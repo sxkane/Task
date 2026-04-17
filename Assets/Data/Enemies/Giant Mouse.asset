@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986c783e9a80459ab17fecac766c07a3, type: 3}
+  m_Name: Giant Mouse
+  m_EditorClassIdentifier: Assembly-CSharp::Enemy.EnemyStatTemplate
+  enemyID: 4
+  enemyName: Giant Mouse
+  maxHP: 4
+  hpPerWave: 2.5
+  moveSpeed: 4
+  damage: 0.85
+  damagePerWave: 0.8
+  attackInterval: 1.2
+  knockbackResistance: 0.8
+  coinReward: 1
+  expReward: 1

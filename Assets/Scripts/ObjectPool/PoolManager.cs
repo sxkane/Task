@@ -72,6 +72,7 @@ namespace ObjectPool
             _instanceToDefaultParent[instance] = spawnParent;
             instance.transform.SetParent(spawnParent, false);
             instance.transform.SetPositionAndRotation(position, rotation);
+            NotifySpawned(instance);
             return instance;
         }
 
@@ -87,6 +88,7 @@ namespace ObjectPool
             }
 
             instance.SetActive(false);
+            NotifyDespawned(instance);
 
             if (_instanceToDefaultParent.TryGetValue(instance, out var parent) && parent != null)
                 instance.transform.SetParent(parent, false);
@@ -94,6 +96,20 @@ namespace ObjectPool
                 instance.transform.SetParent(transform, false);
 
             _pools[prefab].Enqueue(instance);
+        }
+
+        private static void NotifySpawned(GameObject instance)
+        {
+            var poolables = instance.GetComponentsInChildren<IPoolable>(true);
+            for (var i = 0; i < poolables.Length; i++)
+                poolables[i].OnSpawned();
+        }
+
+        private static void NotifyDespawned(GameObject instance)
+        {
+            var poolables = instance.GetComponentsInChildren<IPoolable>(true);
+            for (var i = 0; i < poolables.Length; i++)
+                poolables[i].OnDespawned();
         }
     }
 }

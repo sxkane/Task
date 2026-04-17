@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 986c783e9a80459ab17fecac766c07a3, type: 3}
-  m_Name: Small Slime
+  m_Name: Slime
   m_EditorClassIdentifier: Assembly-CSharp::Enemy.EnemyStatTemplate
   enemyID: 1
   enemyName: Small Slime
   maxHP: 3
   hpPerWave: 2
-  moveSpeed: 2.2
+  moveSpeed: 2.8
   damage: 1
   damagePerWave: 0.6
   attackInterval: 1.2

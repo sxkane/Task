@@ -17,7 +17,8 @@
             }
 
             Enemy.Attack.StartAttack();
-            Enemy.Rigidbody.linearVelocity *= 0.1f;
+            if (Enemy.Attack.ShouldStopMovementDuringAttack)
+                Enemy.Motor.Stop();
         }
     }
 }

@@ -17,13 +17,29 @@ namespace Enemy
 
         public void EnemyAttack()
         {
+            if (_enemy == null || _enemy.Lifecycle == null || !_enemy.Lifecycle.IsActive)
+                return;
+
             _attack.DoAttack();
         }
 
         public void AttackEnd()
         {
+            if (_enemy == null || _enemy.Lifecycle == null || !_enemy.Lifecycle.IsActive)
+            {
+                _attack.EndAttack();
+                return;
+            }
+
             _attack.EndAttack();
-            _enemy.ChangeState(EnemyStateEnum.Move);
+            if (_attack.UsesAttackState && _enemy != null && _enemy.Lifecycle != null && _enemy.Lifecycle.IsActive)
+                _enemy.ChangeState(EnemyStateEnum.Move);
+        }
+
+        public void DeathEnd()
+        {
+            _enemy.MarkDeathAnimationFinished();
+            _enemy.FinishDeath();
         }
     }
 }

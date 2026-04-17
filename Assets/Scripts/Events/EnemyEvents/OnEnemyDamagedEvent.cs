@@ -6,11 +6,13 @@ namespace Events.EnemyEvents
     {
         public EnemyController Target { get; }
         public int FinalDamage { get; }
+        public bool WasKilled { get; }
 
-        public OnEnemyDamagedEvent(EnemyController target, int finalDamage)
+        public OnEnemyDamagedEvent(EnemyController target, int finalDamage, bool wasKilled)
         {
             Target = target;
             FinalDamage = finalDamage;
+            WasKilled = wasKilled;
         }
     }
 }

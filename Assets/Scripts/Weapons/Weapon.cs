@@ -20,10 +20,9 @@ namespace Weapons
         public void SetOffset(Vector2 offset)
         {
             Offset = offset;
-            transform.position = 
-                Player.transform.position + (Vector3)offset;
+            transform.position = Player.transform.position + (Vector3)offset;
         }
-        
+
         protected virtual void Update()
         {
             if (!_isActive)
@@ -62,8 +61,15 @@ namespace Weapons
             _isActive = false;
         }
 
-        public bool BeginPhase() => _isActive = true;
-        public bool EndPhase() => _isActive = false;
+        public void BeginPhase()
+        {
+            _isActive = true;
+        }
+
+        public void EndPhase()
+        {
+            _isActive = false;
+        }
 
         #endregion
 
@@ -100,7 +106,7 @@ namespace Weapons
         {
             if (Stats?.effects == null || context == null)
                 return;
-            
+
             foreach (var effect in Stats.effects)
             {
                 if (effect == null)
@@ -109,7 +115,7 @@ namespace Weapons
                 effect.Execute(context, trigger);
             }
         }
-        
+
         #endregion
     }
 }

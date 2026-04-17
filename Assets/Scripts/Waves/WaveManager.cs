@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Core;
+using Data;
 using Enemy;
+using Enemy.Movement;
+using Enemy.Spawn;
 using Events;
 using Events.WaveEvents;
 using ObjectPool;
@@ -16,8 +19,11 @@ namespace Waves
         #region Inspector
 
         [Header("Wave Settings")]
-        [SerializeField] private List<WaveConfig> waves = new();
-        [SerializeField] private float spawnRadius = 14f;
+        [SerializeField] private Vector2 spawnMin = new(-17f, -10f);
+        [SerializeField] private Vector2 spawnMax = new(17f, 8f);
+        [SerializeField] private GameObject spawnTelegraphPrefab;
+        [SerializeField] private WaveDatabase waveDatabase;
+        private List<WaveConfig> _waves = new();
 
         #endregion
 
@@ -44,13 +50,13 @@ namespace Waves
             if (!_isActive)
                 return;
 
-            if (CurrentWave < 0 || CurrentWave >= waves.Count)
+            if (CurrentWave < 0 || CurrentWave >= _waves.Count)
             {
                 _isActive = false;
                 return;
             }
 
-            var wave = waves[CurrentWave];
+            var wave = _waves[CurrentWave];
             UpdateWaveTimer(wave);
             if (!_isActive)
                 return;
@@ -64,6 +70,13 @@ namespace Waves
             _session = session;
             _playerManager = playerManager;
             _poolManager = PoolManager.Instance;
+            EnemyWorldBounds.Configure(spawnMin, spawnMax);
+            
+            _waves = new List<WaveConfig>();
+            foreach (var wave in waveDatabase.waves)
+            {
+                _waves.Add(wave);
+            }
         }
 
         public void InitializeRun()
@@ -105,7 +118,7 @@ namespace Waves
 
         public void ResumePhase()
         {
-            if (CurrentWave < 0 || CurrentWave >= waves.Count)
+            if (CurrentWave < 0 || CurrentWave >= _waves.Count)
                 return;
 
             _isActive = true;
@@ -137,7 +150,7 @@ namespace Waves
                 return;
 
             _isActive = false;
-            var isLastWave = CurrentWave >= waves.Count - 1;
+            var isLastWave = CurrentWave >= _waves.Count - 1;
             OnWaveCompleted?.Invoke(isLastWave);
         }
 
@@ -210,14 +223,79 @@ namespace Waves
 
         private void SpawnEnemy(GameObject prefab, string groupName)
         {
+            if (prefab == null || _poolManager == null)
+                return;
+
+            var groupRoot = _session?.GetOrCreateGroupRoot(GameSessionRootType.Enemy, groupName);
+            var groupConfig = prefab.GetComponent<EnemySpawnGroup>();
+
+            if (groupConfig != null && groupConfig.enabled)
+            {
+                var anchor = GetRandomSpawnPosition();
+                var spawnCount = groupConfig.GetSpawnCount();
+                for (var i = 0; i < spawnCount; i++)
+                {
+                    var position = i == 0
+                        ? anchor
+                        : ClampToSpawnBounds(anchor + Random.insideUnitCircle * groupConfig.scatterRadius);
+                    SpawnEnemyWithTelegraph(prefab, position, groupRoot);
+                }
+
+                return;
+            }
+
+            SpawnEnemyWithTelegraph(prefab, GetRandomSpawnPosition(), groupRoot);
+        }
+
+        private void SpawnEnemyWithTelegraph(GameObject prefab, Vector2 position, Transform groupRoot)
+        {
             var player = _playerManager != null ? _playerManager.Player : null;
             if (player == null || prefab == null || _poolManager == null)
                 return;
 
-            var position = (Vector2)player.transform.position + Random.insideUnitCircle.normalized * spawnRadius;
-            var groupRoot = _session?.GetOrCreateGroupRoot(GameSessionRootType.Enemy, groupName);
-            var enemyObject = _poolManager.Spawn(prefab, position, Quaternion.identity, groupRoot);
-            enemyObject.GetComponent<EnemyController>().Initialize(player.transform, EnemyManager, CurrentWave);
+            if (spawnTelegraphPrefab != null)
+            {
+                var telegraphObject = _poolManager.Spawn(
+                    spawnTelegraphPrefab,
+                    position,
+                    Quaternion.identity,
+                    groupRoot);
+                var telegraph = telegraphObject.GetComponent<SpawnTelegraph>();
+                if (telegraph != null)
+                {
+                    telegraph.Play(() => SpawnEnemyInternal(prefab, position, groupRoot, player.transform));
+                    return;
+                }
+            }
+
+            SpawnEnemyInternal(prefab, position, groupRoot, player.transform);
+        }
+
+        private void SpawnEnemyInternal(GameObject prefab, Vector2 position, Transform groupRoot, Transform playerTransform)
+        {
+            var enemyObject = _poolManager.Spawn(prefab, position, prefab.transform.rotation, groupRoot);
+            var enemyController = enemyObject.GetComponent<EnemyController>();
+            if (enemyController == null)
+            {
+                Debug.LogError($"Spawned enemy prefab '{prefab.name}' is missing EnemyController.");
+                return;
+            }
+
+            enemyController.Initialize(playerTransform, EnemyManager, CurrentWave + 1);
+        }
+
+        private Vector2 GetRandomSpawnPosition()
+        {
+            return new Vector2(
+                Random.Range(spawnMin.x, spawnMax.x),
+                Random.Range(spawnMin.y, spawnMax.y));
+        }
+
+        private Vector2 ClampToSpawnBounds(Vector2 position)
+        {
+            position.x = Mathf.Clamp(position.x, spawnMin.x, spawnMax.x);
+            position.y = Mathf.Clamp(position.y, spawnMin.y, spawnMax.y);
+            return position;
         }
 
         private float GetNormalizedWaveTime(WaveConfig wave)
