@@ -38,6 +38,14 @@ namespace Player
         public Stat GetStat(StatType type) => _statsDict[type];
         public int GetStatValue(StatType type) => Mathf.RoundToInt(_statsDict[type].Value);
 
+        public void AddBaseValue(StatType type, float delta)
+        {
+            if (_statsDict == null || !_statsDict.TryGetValue(type, out var stat))
+                return;
+
+            stat.BaseValue += delta;
+        }
+
         public bool TryGetStat(string statKey, out Stat stat)
         {
             stat = null;
@@ -186,6 +194,9 @@ namespace Player
 
         public int SpeedPercent => Mathf.RoundToInt(SpeedStat.Value);
         public int Luck => Mathf.RoundToInt(LuckStat.Value);
+        
+        // 你在一波结束时获得+x材料和经验。获得材料和经验后，采集属性向上取整5%。（所以如果你有5个收割，它变成6个，每波结束时获得+2收割需要21个收割。）
+        // 如果收获为负，你会在一波结束时失去-x材料和经验值。你不会因为这段经验值损失而失去等级。虽然你的收割能力是负的，但没有5%的利息。
         public int Harvesting => Mathf.RoundToInt(HarvestingStat.Value);
         public int MaxWeapons => Mathf.RoundToInt(MaxWeaponsStat.Value);
 

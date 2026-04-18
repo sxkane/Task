@@ -53,4 +53,6 @@ MonoBehaviour:
   passiveData: {fileID: 11400000, guid: 38de297b94fe7c54aa34770936a1f768, type: 2}
   starterWeapons:
   - weaponData: {fileID: 11400000, guid: b51c1ca2b118a544dbe9f2346ae356af, type: 2}
+    rarity: 1
+  - weaponData: {fileID: 11400000, guid: 4de33ea7b7b8ab740a2227286cfe2969, type: 2}
     rarity: 0

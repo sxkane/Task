@@ -9,17 +9,20 @@ namespace Events.EnemyEvents
         public float Damage { get; }
         public Vector2 KnockbackDirection { get; }
         public float KnockbackForce { get; }
+        public bool IsCritical { get; }
 
         public OnEnemyDamageRequestedEvent(
             EnemyController target,
             float damage,
             Vector2 knockbackDirection = default,
-            float knockbackForce = 0f)
+            float knockbackForce = 0f,
+            bool isCritical = false)
         {
             Target = target;
             Damage = damage;
             KnockbackDirection = knockbackDirection;
             KnockbackForce = knockbackForce;
+            IsCritical = isCritical;
         }
     }
 }

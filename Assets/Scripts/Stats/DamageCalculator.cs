@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using Player;
 using UnityEngine;
 using Weapons;
+using Weapons.Core;
 
 namespace Stats
 {
@@ -27,9 +28,41 @@ namespace Stats
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            
+
             finalDamage = Mathf.RoundToInt(finalDamage * playerStats.DamageMultiplier);
-            
+            return finalDamage;
+        }
+
+        public static int CalculateBaseDamage(PlayerStats playerStats, WeaponRuntimeStats runtimeStats)
+        {
+            if (playerStats == null || runtimeStats == null)
+                return 0;
+
+            var finalDamage = 0;
+            var entries = runtimeStats.DamageEntries;
+            for (var i = 0; i < entries.Count; i++)
+            {
+                var damage = entries[i];
+                var baseDamage = damage.damage.Value;
+                var percentage = damage.percentage.Value / 100f;
+
+                switch (damage.damageType)
+                {
+                    case DamageType.Melee:
+                        finalDamage += Mathf.RoundToInt(baseDamage + playerStats.MeleeDamage * percentage);
+                        break;
+                    case DamageType.Ranged:
+                        finalDamage += Mathf.RoundToInt(baseDamage + playerStats.RangedDamage * percentage);
+                        break;
+                    case DamageType.Elemental:
+                        finalDamage += Mathf.RoundToInt(baseDamage + playerStats.ElementalDamage * percentage);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            finalDamage = Mathf.RoundToInt(finalDamage * playerStats.DamageMultiplier);
             return finalDamage;
         }
     }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Data;
 using UnityEngine;
+using Weapons.Abilities;
 
 namespace Weapons
 {
@@ -22,6 +23,9 @@ namespace Weapons
 
         [Header("Rarity Settings")]
         public List<WeaponStats> rarityStats;
+
+        [Header("Abilities")]
+        public List<WeaponAbility> abilities = new();
 
         public override int DataId => weaponID;
         public override string DisplayName => weaponName;
@@ -169,6 +173,11 @@ namespace Weapons
         public IReadOnlyList<WeaponTag> GetTags()
         {
             return tags;
+        }
+
+        public IReadOnlyList<WeaponAbility> GetAbilities()
+        {
+            return abilities;
         }
     }
 }

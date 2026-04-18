@@ -5,7 +5,6 @@ using Items;
 using Player;
 using Stats;
 using Weapons;
-using Weapons.Effects;
 
 namespace Data.Text
 {
@@ -73,11 +72,11 @@ namespace Data.Text
                 var statLines = BuildStatLines(stats);
                 if (statLines.Count > 0)
                     sections.Add(string.Join("\n", statLines));
-
-                var effectLines = BuildEffectLines(stats.effects);
-                if (effectLines.Count > 0)
-                    sections.Add(string.Join("\n", effectLines));
             }
+
+            var abilityLines = BuildAbilityLines(weaponData, rarity);
+            if (abilityLines.Count > 0)
+                sections.Add(string.Join("\n", abilityLines));
 
             return JoinSections(sections);
         }
@@ -140,6 +139,27 @@ namespace Data.Text
             lines.RemoveAll(string.IsNullOrWhiteSpace);
             return lines;
         }
+
+        private static List<string> BuildAbilityLines(WeaponData weaponData, Rarity rarity)
+        {
+            var lines = new List<string>();
+            var abilities = weaponData != null ? weaponData.GetAbilities() : null;
+            if (abilities == null)
+                return lines;
+
+            for (var i = 0; i < abilities.Count; i++)
+            {
+                var ability = abilities[i];
+                if (ability == null)
+                    continue;
+
+                var line = ability.BuildDescription(rarity);
+                if (!string.IsNullOrWhiteSpace(line))
+                    lines.Add(line);
+            }
+
+            return lines;
+        }
         
         private static string BuildDamageLine(WeaponDamage dmg)
         {
@@ -165,7 +185,7 @@ namespace Data.Text
             return string.Empty;
         }
 
-        private static List<string> BuildEffectLines(List<Effect> effects)
+        private static List<string> BuildEffectLines(List<Weapons.Effects.Effect> effects)
         {
             var lines = new List<string>();
             if (effects == null) return lines;

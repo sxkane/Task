@@ -35,6 +35,7 @@ namespace UI.GameSceneUI
         {
             EventBus.Subscribe<WaveChangeSecondEvent>(UpdateGameTimerText);
             EventBus.Subscribe<OnPlayerDamagedEvent>(OnPlayerDamaged);
+            EventBus.Subscribe<OnPlayerHealthChangedEvent>(OnPlayerHealthChanged);
             BindRuntimeData();
         }
 
@@ -42,6 +43,7 @@ namespace UI.GameSceneUI
         {
             EventBus.Unsubscribe<WaveChangeSecondEvent>(UpdateGameTimerText);
             EventBus.Unsubscribe<OnPlayerDamagedEvent>(OnPlayerDamaged);
+            EventBus.Unsubscribe<OnPlayerHealthChangedEvent>(OnPlayerHealthChanged);
             UnbindRuntimeData();
         }
 
@@ -70,6 +72,14 @@ namespace UI.GameSceneUI
         }
 
         private void OnPlayerDamaged(OnPlayerDamagedEvent eventData)
+        {
+            if (_player == null || eventData.Target != _player)
+                return;
+
+            RefreshHealth();
+        }
+
+        private void OnPlayerHealthChanged(OnPlayerHealthChangedEvent eventData)
         {
             if (_player == null || eventData.Target != _player)
                 return;

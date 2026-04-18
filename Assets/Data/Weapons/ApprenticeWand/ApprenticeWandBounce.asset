@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8830e1ccb3712c449ad0ce59fcd674d0, type: 3}
+  m_Name: ApprenticeWandBounce
+  m_EditorClassIdentifier: Assembly-CSharp::Weapons.Abilities.BounceAbility
+  bounceCount: 1
+  rarityConfigs:
+  - rarity: 0
+    bounceCount: 1
+  - rarity: 1
+    bounceCount: 2
+  - rarity: 2
+    bounceCount: 3
+  - rarity: 3
+    bounceCount: 4

@@ -1,7 +1,8 @@
-﻿using Events;
+using Core;
+using Events;
 using Events.EnemyEvents;
 using Events.PlayerEvents;
-using UI.GameSceneUI;
+using ObjectPool;
 using UI.GameSceneUI.VFX;
 using UnityEngine;
 
@@ -10,7 +11,11 @@ namespace VFX
     public class WorldFeedbackManager : MonoBehaviour
     {
         [SerializeField] private GameObject combatTextPrefab;
-        
+
+        private static readonly Color PlayerDamageColor = new(1f, 0.35f, 0.35f, 1f);
+        private static readonly Color EnemyDamageColor = new(1f, 1f, 1f, 1f);
+        private static readonly Color CriticalDamageColor = new(1f, 0.92f, 0.3f, 1f);
+
         private void OnEnable()
         {
             EventBus.Subscribe<OnPlayerDamagedEvent>(SpawnCombatText);
@@ -26,21 +31,29 @@ namespace VFX
         private void SpawnCombatText(OnPlayerDamagedEvent e)
         {
             var text = e.IsDodged ? "DODGE" : $"-{e.FinalDamage}";
-            var color = e.IsDodged ? new Color(1f, 0.92f, 0.3f, 1f) : new Color(1f, 0.45f, 0.45f, 1f);
-            
-            var obj = Instantiate(combatTextPrefab, transform);
-            var combatText = obj.GetComponent<CombatText>();
-            combatText.Initialize(e.Target.transform.position + Vector3.up * 1.4f, text, color);
+            var color = e.IsDodged ? CriticalDamageColor : PlayerDamageColor;
+            SpawnText(e.Target.transform.position + Vector3.up * 1.4f, text, color);
         }
 
         private void SpawnCombatText(OnEnemyDamagedEvent e)
         {
             var text = $"-{e.FinalDamage}";
-            var color = new Color(1f, 0.45f, 0.45f, 1f);
-            
-            var obj = Instantiate(combatTextPrefab, transform);
+            var color = e.IsCritical ? CriticalDamageColor : EnemyDamageColor;
+            SpawnText(e.Target.transform.position + Vector3.up * 1.4f, text, color);
+        }
+
+        private void SpawnText(Vector3 worldPosition, string content, Color color)
+        {
+            if (combatTextPrefab == null)
+                return;
+
+            var parent = GameController.Instance?.Session?.GetOrCreateGroupRoot(GameSessionRootType.WorldText, "CombatText");
+            var obj = PoolManager.Instance != null
+                ? PoolManager.Instance.Spawn(combatTextPrefab, worldPosition, Quaternion.identity, parent)
+                : Instantiate(combatTextPrefab, worldPosition, Quaternion.identity, parent);
             var combatText = obj.GetComponent<CombatText>();
-            combatText.Initialize(e.Target.transform.position + Vector3.up * 1.4f, text, color);
+            if (combatText != null)
+                combatText.Initialize(worldPosition, content, color);
         }
     }
 }

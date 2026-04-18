@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Stats;
 using UnityEngine;
+using UnityEngine.Serialization;
+using Weapons.Modifiers;
 
 namespace Weapons
 {
@@ -17,10 +19,20 @@ namespace Weapons
         }
 
         [Serializable]
+        public class SetWeaponModifier
+        {
+            public WeaponStatType statType;
+            public float value;
+            public StatModType modType;
+        }
+
+        [Serializable]
         public class SetTier
         {
             [Range(2, 6)] public int requiredCount = 2;
-            public List<SetStatModifier> modifiers = new();
+            [FormerlySerializedAs("modifiers")]
+            public List<SetStatModifier> playerModifiers = new();
+            public List<SetWeaponModifier> weaponModifiers = new();
         }
 
         [Header("Identity")]

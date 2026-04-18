@@ -7,6 +7,7 @@ using Player;
 using Drops;
 using Rewards.Shops;
 using Rewards.Upgrades;
+using Stats;
 using UI.GameSceneUI;
 using UnityEngine;
 using Waves;
@@ -288,6 +289,7 @@ namespace Core
             DisablePlayerInput();
             WaveManager?.CompletePhase();
             WeaponManager?.EndPhase();
+            ApplyWaveEndStats();
 
             EnemyDropManager?.AttractAllDropsToPlayer();
             WaveManager?.EnemyManager?.ClearAllEnemies();
@@ -320,6 +322,32 @@ namespace Core
             else
             {
                 ChangeState(GamePhaseType.GameOver);
+            }
+        }
+
+        private void ApplyWaveEndStats()
+        {
+            var player = PlayerManager?.Player;
+            var runtimeData = player?.RuntimeData;
+            var stats = player?.Stats;
+            if (player == null || runtimeData == null || stats == null)
+                return;
+
+            var harvesting = stats.Harvesting;
+            if (harvesting > 0)
+            {
+                runtimeData.AddCoins(harvesting);
+                runtimeData.AddExperience(harvesting);
+
+                var interest = Mathf.CeilToInt(harvesting * 0.05f);
+                if (interest > 0)
+                    stats.AddBaseValue(StatType.Harvesting, interest);
+            }
+            else if (harvesting < 0)
+            {
+                var loss = Mathf.Abs(harvesting);
+                runtimeData.RemoveCoins(loss);
+                runtimeData.RemoveExperienceWithoutLevelLoss(loss);
             }
         }
 

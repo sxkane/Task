@@ -72,6 +72,15 @@ namespace Player
             Coins += amount;
             OnCoinsChanged?.Invoke(Coins);
         }
+
+        public void RemoveCoins(int amount)
+        {
+            if (amount <= 0)
+                return;
+
+            Coins = Mathf.Max(0, Coins - amount);
+            OnCoinsChanged?.Invoke(Coins);
+        }
         
         public void AddExperience(int amount)
         {
@@ -89,6 +98,15 @@ namespace Player
                 OnPendingUpgradeSelectionsChanged?.Invoke(PendingUpgradeSelections);
             }
 
+            OnExpChanged?.Invoke(Experience, NeedExperience);
+        }
+
+        public void RemoveExperienceWithoutLevelLoss(int amount)
+        {
+            if (amount <= 0)
+                return;
+
+            Experience = Mathf.Max(0, Experience - amount);
             OnExpChanged?.Invoke(Experience, NeedExperience);
         }
 

@@ -70,7 +70,7 @@ namespace Weapons
 
             _player = _playerManager != null ? _playerManager.Player : null;
             _enemyManager = _waveManager != null ? _waveManager.EnemyManager : null;
-            _weaponParent = _player != null ? _player.transform : _session?.WeaponRoot;
+            _weaponParent = _session.WeaponRoot == null ? _player?.transform : _session.WeaponRoot;
             _projectileRoot = _session?.GetOrCreateGroupRoot(GameSessionRootType.Weapon, "Projectiles");
             _maxWeaponCount = _player != null && _player.Stats != null ? _player.Stats.MaxWeapons : 0;
 
@@ -243,14 +243,38 @@ namespace Weapons
 
                 var count = GetSetTier(setBonus.WeaponTag);
                 var tier = setBonus.ResolveActiveTier(count);
-                if (tier == null || tier.modifiers == null)
+                if (tier == null)
                     continue;
 
-                for (var j = 0; j < tier.modifiers.Count; j++)
+                if (tier.playerModifiers != null)
                 {
-                    var mod = tier.modifiers[j];
-                    var stat = _player.Stats.GetStat(mod.statType);
-                    stat.AddModifier(new Modifier(mod.value, mod.modType, setBonus));
+                    for (var j = 0; j < tier.playerModifiers.Count; j++)
+                    {
+                        var mod = tier.playerModifiers[j];
+                        var stat = _player.Stats.GetStat(mod.statType);
+                        stat.AddModifier(new Modifier(mod.value, mod.modType, setBonus));
+                    }
+                }
+
+                if (tier.weaponModifiers != null)
+                {
+                    for (var j = 0; j < _weapons.Count; j++)
+                    {
+                        var weapon = _weapons[j];
+                        if (weapon == null || weapon.Entry?.weaponData == null || weapon.RuntimeStats == null)
+                            continue;
+
+                        var tags = weapon.Entry.weaponData.GetTags();
+                        if (tags == null || !HasTag(tags, setBonus.WeaponTag))
+                            continue;
+
+                        for (var modifierIndex = 0; modifierIndex < tier.weaponModifiers.Count; modifierIndex++)
+                        {
+                            var modifier = tier.weaponModifiers[modifierIndex];
+                            weapon.RuntimeStats.GetStat(modifier.statType)
+                                .AddModifier(new Modifier(modifier.value, modifier.modType, setBonus));
+                        }
+                    }
                 }
 
                 _activeSetBonuses.Add(setBonus);
@@ -272,9 +296,32 @@ namespace Weapons
                     var statType = (StatType)statIndex;
                     _player.Stats.GetStat(statType).RemoveModifiersFromSource(setBonus);
                 }
+
+                for (var weaponIndex = 0; weaponIndex < _weapons.Count; weaponIndex++)
+                {
+                    var weapon = _weapons[weaponIndex];
+                    if (weapon?.RuntimeStats == null)
+                        continue;
+
+                    weapon.RuntimeStats.RemoveModifiersFromSource(setBonus);
+                }
             }
 
             _activeSetBonuses.Clear();
+        }
+
+        private static bool HasTag(IReadOnlyList<WeaponTag> tags, WeaponTag weaponTag)
+        {
+            if (tags == null)
+                return false;
+
+            for (var i = 0; i < tags.Count; i++)
+            {
+                if (tags[i] == weaponTag)
+                    return true;
+            }
+
+            return false;
         }
 
         #endregion

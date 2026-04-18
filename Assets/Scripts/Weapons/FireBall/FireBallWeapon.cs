@@ -1,13 +1,13 @@
 using ObjectPool;
 using UnityEngine;
-using Weapons.Effects;
+using Weapons.Core;
+using Weapons.Modifiers;
 
 namespace Weapons.FireBall
 {
     public class FireBallWeapon : CooldownWeapon
     {
         [SerializeField] private GameObject fireBallPrefab;
-        [SerializeField] private float bulletSpeed = 4f;
         [SerializeField] private Transform firePoint;
 
         protected override void Attack()
@@ -17,19 +17,23 @@ namespace Weapons.FireBall
             if (target != null)
             {
                 var dir = (target.transform.position - transform.position).normalized;
-                transform.right = dir;
+                FaceDirection(dir);
             }
 
-            ExecuteEffects(EffectTrigger.OnWeaponAttack);
+            NotifyAbilitiesAttack();
+
+            if (Abilities != null && Abilities.Count > 0)
+                return;
 
             var bulletObj = PoolManager.Instance.Spawn(
                 fireBallPrefab,
                 firePoint.position,
                 firePoint.rotation,
                 ProjectileRoot);
+            var projectileSpeed = RuntimeStats != null ? RuntimeStats.GetStat(WeaponStatType.ProjectileSpeed).Value : 0f;
 
             bulletObj.GetComponent<FireBallBullet>()
-                .Init(this, Stats, bulletSpeed, Player, EnemyManager);
+                .Init(this, Stats, RuntimeStats, projectileSpeed, Player, EnemyManager);
         }
     }
 }

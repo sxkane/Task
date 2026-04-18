@@ -41,7 +41,7 @@ namespace Weapons
 
         protected void ResetCooldown()
         {
-            _cooldown = Stats != null ? Stats.attackSpeed : 0f;
+            _cooldown = RuntimeStats != null ? RuntimeStats.GetAttackInterval(Player?.Stats) : 0f;
         }
     }
 }

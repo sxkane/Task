@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Weapons.Effects;
 
 namespace Weapons
 {
@@ -18,12 +17,8 @@ namespace Weapons
         public float critDamage;
         public float range;
         public float knockback;
-
         [Header("Economy")]
         public int price;
-    
-        [Header("Effects")]
-        public List<Effect> effects;
 
         public bool IsValid()
         {

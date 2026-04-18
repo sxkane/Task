@@ -7,12 +7,14 @@ namespace Events.EnemyEvents
         public EnemyController Target { get; }
         public int FinalDamage { get; }
         public bool WasKilled { get; }
+        public bool IsCritical { get; }
 
-        public OnEnemyDamagedEvent(EnemyController target, int finalDamage, bool wasKilled)
+        public OnEnemyDamagedEvent(EnemyController target, int finalDamage, bool wasKilled, bool isCritical)
         {
             Target = target;
             FinalDamage = finalDamage;
             WasKilled = wasKilled;
+            IsCritical = isCritical;
         }
     }
 }

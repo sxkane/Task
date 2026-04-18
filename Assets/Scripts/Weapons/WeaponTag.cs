@@ -3,11 +3,13 @@ namespace Weapons
     public enum WeaponTag
     {
         None = 0,
-        Fire = 1,
-        Ice = 2,
-        Lightning = 3,
-        Summon = 4,
-        Gun = 5,
-        Arcane = 6
+        Knight = 1,
+        Elemental = 2,
+        Sharp = 3,
+        Precise = 4,
+        Explosive = 5,
+        Bow = 6,
+        Legendary = 7,
+        Plain = 8
     }
 }

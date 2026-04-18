@@ -1,11 +1,12 @@
 using Enemy;
 using Player;
 using UnityEngine;
-using Weapons.Effects;
+using Weapons.Core;
+using Weapons.Projectiles;
 
 namespace Weapons.FireBall
 {
-    public class FireBallBullet : WeaponProjectile
+    public class FireBallBullet : WeaponProjectile, IWeaponProjectileLauncher
     {
         [Header("Movement")]
         [SerializeField] private float turnRate = 360f;
@@ -17,9 +18,14 @@ namespace Weapons.FireBall
         private float _bulletSpeed;
         private float _retargetTimer;
 
-        public void Init(Weapon ownerWeapon, WeaponStats stats, float bulletSpeed, PlayerController player, EnemyManager enemyManager)
+        public void Launch(WeaponRuntimeContext context, Transform target, Vector2 direction, float projectileSpeed)
         {
-            InitializeProjectile(player, stats, enemyManager);
+            Init(context.Weapon, context.Weapon.Stats, context.RuntimeStats, projectileSpeed, context.Player, context.EnemyManager);
+        }
+
+        public void Init(Weapon ownerWeapon, WeaponStats stats, WeaponRuntimeStats runtimeStats, float bulletSpeed, PlayerController player, EnemyManager enemyManager)
+        {
+            InitializeProjectile(player, stats, runtimeStats, enemyManager);
 
             _ownerWeapon = ownerWeapon;
             _bulletSpeed = bulletSpeed;
@@ -73,6 +79,7 @@ namespace Weapons.FireBall
 
             transform.position += _direction * (_bulletSpeed * Time.deltaTime);
             transform.up = _direction;
+            TrackTravel();
         }
 
         private void OnTriggerEnter2D(Collider2D collision)
@@ -80,16 +87,10 @@ namespace Weapons.FireBall
             if (!TryHitEnemy(collision, out var enemy))
                 return;
 
+            var isCritical = IsCriticalHit();
             var damage = CalculateDamage();
-            PublishDamage(enemy, damage, _direction);
-
-            var effectContext = EffectExecutionContext.ForWeaponHit(
-                Player,
-                _ownerWeapon,
-                EnemyManager,
-                enemy,
-                transform.position);
-            _ownerWeapon?.ExecuteEffects(EffectTrigger.OnWeaponHit, effectContext);
+            PublishDamage(enemy, damage, _direction, isCritical);
+            _ownerWeapon?.NotifyProjectileHit(enemy, transform.position);
             ReturnToPool();
         }
     }

@@ -135,7 +135,7 @@ namespace Enemy
 
             var willBeKilled = Stats.CurrentHP - e.Damage <= 0f;
             Stats.TakeDamage(e.Damage);
-            EventBus.Publish(new OnEnemyDamagedEvent(this, Mathf.RoundToInt(e.Damage), !Stats.IsAlive));
+            EventBus.Publish(new OnEnemyDamagedEvent(this, Mathf.RoundToInt(e.Damage), !Stats.IsAlive, e.IsCritical));
 
             if (!willBeKilled && e.KnockbackForce > 0f)
                 Motor.ApplyKnockback(e.KnockbackDirection, e.KnockbackForce, Stats.KnockbackResistance);

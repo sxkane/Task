@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f72c7f0c3dfefc6498ba95170ab9f3ef, type: 3}
+  m_Name: Bow
+  m_EditorClassIdentifier: Assembly-CSharp::Weapons.WeaponSetBonusData
+  setId: 6
+  displayName: "\u5F13"
+  weaponTag: 6
+  tiers:
+  - requiredCount: 0
+    modifiers:
+    - statType: 11
+      value: 10
+      modType: 0
+  - requiredCount: 3
+    modifiers:
+    - statType: 11
+      value: 20
+      modType: 0
+  - requiredCount: 4
+    modifiers:
+    - statType: 11
+      value: 30
+      modType: 0
+  - requiredCount: 5
+    modifiers:
+    - statType: 11
+      value: 40
+      modType: 0
+  - requiredCount: 6
+    modifiers:
+    - statType: 11
+      value: 50
+      modType: 0
