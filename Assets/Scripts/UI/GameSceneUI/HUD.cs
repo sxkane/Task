@@ -1,5 +1,4 @@
 using Core;
-using Data;
 using Data.Text;
 using Events;
 using Events.PlayerEvents;
@@ -15,6 +14,8 @@ namespace UI.GameSceneUI
     {
         [Header("Combat")]
         [SerializeField] private TextMeshProUGUI gameTimerText;
+        [SerializeField] private TextMeshProUGUI currentWaveText;
+        [SerializeField] private TextMeshProUGUI totalWaveText;
 
         [Header("Hp")]
         [SerializeField] private Slider hpBar;
@@ -34,6 +35,7 @@ namespace UI.GameSceneUI
         private void OnEnable()
         {
             EventBus.Subscribe<WaveChangeSecondEvent>(UpdateGameTimerText);
+            EventBus.Subscribe<WaveChangedEvent>(UpdateWaveText);
             EventBus.Subscribe<OnPlayerDamagedEvent>(OnPlayerDamaged);
             EventBus.Subscribe<OnPlayerHealthChangedEvent>(OnPlayerHealthChanged);
             BindRuntimeData();
@@ -42,6 +44,7 @@ namespace UI.GameSceneUI
         private void OnDisable()
         {
             EventBus.Unsubscribe<WaveChangeSecondEvent>(UpdateGameTimerText);
+            EventBus.Unsubscribe<WaveChangedEvent>(UpdateWaveText);
             EventBus.Unsubscribe<OnPlayerDamagedEvent>(OnPlayerDamaged);
             EventBus.Unsubscribe<OnPlayerHealthChangedEvent>(OnPlayerHealthChanged);
             UnbindRuntimeData();
@@ -62,6 +65,7 @@ namespace UI.GameSceneUI
             BindRuntimeData();
             RefreshHealth();
             RefreshProgression();
+            RefreshWaveText();
         }
 
         public void ResetRun()
@@ -69,6 +73,7 @@ namespace UI.GameSceneUI
             UnbindRuntimeData();
             _player = null;
             _runtimeData = null;
+            RefreshWaveText();
         }
 
         private void OnPlayerDamaged(OnPlayerDamagedEvent eventData)
@@ -130,6 +135,30 @@ namespace UI.GameSceneUI
         {
             if (gameTimerText != null)
                 gameTimerText.text = UIValueBuilder.Timer(eventData.Timer);
+
+            RefreshWaveText();
+        }
+
+        private void UpdateWaveText(WaveChangedEvent eventData)
+        {
+            if (currentWaveText != null)
+                currentWaveText.text = "当前波次：" + Mathf.Max(0, eventData.CurrentWave);
+
+            if (totalWaveText != null)
+                totalWaveText.text = "总波次：" + Mathf.Max(0, eventData.TotalWaves);
+        }
+
+        private void RefreshWaveText()
+        {
+            var waveManager = _gameController != null ? _gameController.WaveManager : null;
+            var currentWave = waveManager != null ? Mathf.Max(0, waveManager.CurrentWave + 1) : 0;
+            var totalWaves = waveManager != null ? Mathf.Max(0, waveManager.TotalWaves) : 0;
+
+            if (currentWaveText != null)
+                currentWaveText.text = "当前波次：" + currentWave;
+
+            if (totalWaveText != null)
+                totalWaveText.text = "总波次：" + totalWaves;
         }
 
         private void BindRuntimeData()

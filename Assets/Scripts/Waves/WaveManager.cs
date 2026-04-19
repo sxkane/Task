@@ -43,6 +43,7 @@ namespace Waves
 
         public EnemyManager EnemyManager { get; private set; }
         public int CurrentWave { get; private set; }
+        public int TotalWaves => _waves != null ? _waves.Count : 0;
         public bool IsFinalWave => CurrentWave >= _waves.Count - 1;
         public bool BossSpawned => _bossSpawned;
         public Action<bool> OnWaveCompleted;
@@ -96,6 +97,7 @@ namespace Waves
             _isCompleting = false;
             _spawnGeneration = 0;
             _spawnWeightBuffer.Clear();
+            PublishWaveChanged();
         }
 
         public void ResetRun()
@@ -112,6 +114,7 @@ namespace Waves
             _isCompleting = false;
             _spawnGeneration++;
             _spawnWeightBuffer.Clear();
+            PublishWaveChanged();
         }
 
         public void BeginPhase()
@@ -151,6 +154,12 @@ namespace Waves
             _isCompleting = false;
             _spawnGeneration++;
             _isActive = true;
+            PublishWaveChanged();
+        }
+
+        private void PublishWaveChanged()
+        {
+            EventBus.Publish(new WaveChangedEvent(CurrentWave + 1, TotalWaves));
         }
 
         private void UpdateWaveTimer(WaveConfig wave)
