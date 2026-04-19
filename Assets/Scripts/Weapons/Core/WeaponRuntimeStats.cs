@@ -90,6 +90,16 @@ namespace Weapons.Core
             return GetStat(WeaponStatType.Knockback).Value;
         }
 
+        public float GetCritChanceRatio()
+        {
+            return StatValueUtility.GetWeaponChance(WeaponStatType.CritChance, GetStat(WeaponStatType.CritChance).Value);
+        }
+
+        public float GetCritDamageMultiplier()
+        {
+            return Mathf.Max(0f, StatValueUtility.GetWeaponMultiplier(WeaponStatType.CritDamage, GetStat(WeaponStatType.CritDamage).Value));
+        }
+
         public int GetPierceCount()
         {
             return Mathf.RoundToInt(GetStat(WeaponStatType.PierceCount).Value);

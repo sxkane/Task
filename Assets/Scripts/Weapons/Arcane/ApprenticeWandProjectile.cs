@@ -61,8 +61,8 @@ namespace Weapons.Arcane
                 return;
 
             _hitEnemies.Add(enemy);
-            var isCritical = IsCriticalHit();
-            var damage = CalculateDamage();
+            var isCritical = RollCriticalHit();
+            var damage = CalculateDamage(isCritical);
             PublishDamage(enemy, damage, _direction, isCritical);
 
             if (_remainingBounces <= 0)

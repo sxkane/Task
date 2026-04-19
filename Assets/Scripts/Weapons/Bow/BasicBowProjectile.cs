@@ -49,8 +49,8 @@ namespace Weapons.Bow
                 return;
 
             _hitEnemies.Add(enemy);
-            var isCritical = IsCriticalHit();
-            var damage = Mathf.RoundToInt(CalculateDamage() * _damageMultiplier);
+            var isCritical = RollCriticalHit();
+            var damage = Mathf.RoundToInt(CalculateDamage(isCritical) * _damageMultiplier);
             PublishDamage(enemy, damage, _direction, isCritical);
 
             if (_remainingPierce <= 0)

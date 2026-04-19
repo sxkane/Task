@@ -135,7 +135,7 @@ namespace Core
             ItemManager?.Configure(PlayerManager);
             EnemyDropManager?.Configure(Session, PlayerManager);
             UpgradeManager?.Configure(PlayerManager, WaveManager);
-            ShopManager?.Configure(PlayerManager, WeaponManager, WaveManager);
+            ShopManager?.Configure(PlayerManager, WeaponManager, ItemManager, WaveManager);
             GameInputHandler?.Configure(this);
             gameUIManager?.Configure(this);
         }

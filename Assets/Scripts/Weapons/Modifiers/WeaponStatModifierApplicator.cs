@@ -14,7 +14,12 @@ namespace Weapons.Modifiers
             for (var i = 0; i < modifiers.Count; i++)
             {
                 var modifier = modifiers[i];
-                runtimeStats.GetStat(modifier.statType).AddModifier(new Modifier(modifier.value, modifier.modType, source));
+                runtimeStats.GetStat(modifier.statType)
+                    .AddModifier(StatValueUtility.CreateWeaponModifier(
+                        modifier.statType,
+                        modifier.value,
+                        modifier.modType,
+                        source));
             }
         }
     }

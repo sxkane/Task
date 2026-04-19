@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5b0d37d40e244b0a92450939f1ce262, type: 3}
+  m_Name: FlameSwordAbility
+  m_EditorClassIdentifier: Assembly-CSharp::Weapons.Abilities.Melee.BurnSpreadOnHitAbility
+  burnTickInterval: 0.35
+  burnRadius: 2.5
+  rarityConfigs:
+  - rarity: 0
+    burnTickDamage: 1
+    burnTickCount: 5
+    spreadTargetCount: 2
+  - rarity: 1
+    burnTickDamage: 1
+    burnTickCount: 7
+    spreadTargetCount: 3
+  - rarity: 2
+    burnTickDamage: 1
+    burnTickCount: 9
+    spreadTargetCount: 4
+  - rarity: 3
+    burnTickDamage: 2
+    burnTickCount: 10
+    spreadTargetCount: 5

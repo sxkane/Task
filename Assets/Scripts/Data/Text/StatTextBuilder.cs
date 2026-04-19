@@ -17,11 +17,36 @@ namespace Data.Text
         {
             if (Mathf.Approximately(value, 0)) return string.Empty;
 
-            var name = StatNameMapper.GetNameWithUnit(type);
-            var prefix = value > 0 ? "+" : "";
-            var text = $"{prefix}{value:0.##}";
+            var name = StatNameMapper.GetName(type);
+            var text = StatValueUtility.FormatStatValue(type, value);
+            var colorBasis = StatValueUtility.GetColorBasis(type, value);
 
-            return $"{Colorize(value, text)} {name}";
+            return $"{Colorize(colorBasis, text)} {name}";
+        }
+
+        public static string BuildModifierLine(float value, StatType type, StatModType modType)
+        {
+            if (Mathf.Approximately(value, 0f))
+                return string.Empty;
+
+            if (modType == StatModType.Flat)
+                return BuildLine(value, type);
+
+            var text = StatValueUtility.FormatModifierValue(value, modType);
+            var name = StatNameMapper.GetName(type);
+            var suffix = modType == StatModType.PercentMult ? "（乘区）" : string.Empty;
+            return $"{Colorize(value, text)} {name}{suffix}";
+        }
+
+        public static string BuildCurrentValue(PlayerStats stats, StatType statType)
+        {
+            if (stats == null)
+                return string.Empty;
+
+            var value = stats.GetStat(statType).Value;
+            var text = StatValueUtility.FormatStatValue(statType, value, includeSign: false);
+            var colorBasis = StatValueUtility.GetColorBasis(statType, value);
+            return Colorize(colorBasis, text);
         }
         
         public static string BuildTooltip(PlayerStats stats, StatType statType)
@@ -31,22 +56,27 @@ namespace Data.Text
 
             return statType switch
             {
-                StatType.MaxHP => $"提高生存能力，增加 {ColorizeValue(stats.MaxHp)} 最大生命值。",
+                StatType.MaxHP => $"提高生存能力，增加 {BuildCurrentValue(stats, StatType.MaxHP)} 最大生命值。",
                 StatType.HPRegen => $"每秒恢复 {ColorizeValue(stats.HpRegenPerSecond, true)} 生命值。",
-                StatType.LifeSteal => $"攻击时有 {ColorizeValue(stats.LifeStealPercent)}% 概率回复 1 点生命。",
+                StatType.LifeSteal => $"攻击时有 {BuildCurrentValue(stats, StatType.LifeSteal)} 概率回复 1 点生命。",
                 StatType.Armor =>
                     $"减少约 {ColorizeValue(Mathf.RoundToInt((1f - stats.DamageTakenMultiplier) * 100f))}% 所受伤害。",
-                StatType.Dodge => $"有 {ColorizeValue(stats.DodgePercent)}% 概率闪避伤害。",
-                StatType.DamagePercent => $"总伤害提高 {ColorizeValue(stats.DamagePercent)}%。",
-                StatType.MeleeDamage => $"增加 {ColorizeValue(stats.MeleeDamage)} 近战伤害。",
-                StatType.RangedDamage => $"增加 {ColorizeValue(stats.RangedDamage)} 远程伤害。",
-                StatType.ElementalDamage => $"增加 {ColorizeValue(stats.ElementalDamage)} 元素伤害。",
-                StatType.AttackSpeed => $"攻击速度提高 {ColorizeValue(stats.AttackSpeedPercent)}%。",
-                StatType.CritChance => $"暴击率提高 {ColorizeValue(stats.CritChancePercent)}%。",
-                StatType.Range => $"攻击范围增加 {ColorizeValue(stats.Range)}。",
-                StatType.Speed => $"移动速度提高 {ColorizeValue(stats.SpeedPercent)}%。",
-                StatType.Luck => $"幸运提高 {ColorizeValue(stats.Luck)}。",
-                StatType.Harvesting => $"每波结束获得额外 {ColorizeValue(stats.Harvesting)} 收获。",
+                StatType.Dodge => $"有 {BuildCurrentValue(stats, StatType.Dodge)} 概率闪避伤害。",
+                StatType.DamagePercent => $"总伤害提高 {BuildCurrentValue(stats, StatType.DamagePercent)}。",
+                StatType.MeleeDamage => $"增加 {BuildCurrentValue(stats, StatType.MeleeDamage)} 近战伤害。",
+                StatType.RangedDamage => $"增加 {BuildCurrentValue(stats, StatType.RangedDamage)} 远程伤害。",
+                StatType.ElementalDamage => $"增加 {BuildCurrentValue(stats, StatType.ElementalDamage)} 元素伤害。",
+                StatType.AttackSpeed => $"攻击速度提高 {BuildCurrentValue(stats, StatType.AttackSpeed)}。",
+                StatType.CritChance => $"暴击率提高 {BuildCurrentValue(stats, StatType.CritChance)}。",
+                StatType.Range => $"攻击范围增加 {BuildCurrentValue(stats, StatType.Range)}。",
+                StatType.Knockback => $"击退提高 {BuildCurrentValue(stats, StatType.Knockback)}。",
+                StatType.Speed => $"移动速度提高 {BuildCurrentValue(stats, StatType.Speed)}。",
+                StatType.Luck => $"幸运提高 {BuildCurrentValue(stats, StatType.Luck)}。",
+                StatType.Harvesting => $"每波结束获得额外 {BuildCurrentValue(stats, StatType.Harvesting)} 收获。",
+                StatType.XPGain => $"经验获取提高 {BuildCurrentValue(stats, StatType.XPGain)}。",
+                StatType.ConsumableHealing => $"消耗品回复提高 {BuildCurrentValue(stats, StatType.ConsumableHealing)}。",
+                StatType.EnemyHealthPercent => $"敌人生命修正为 {BuildCurrentValue(stats, StatType.EnemyHealthPercent)}。",
+                StatType.EnemySpeedPercent => $"敌人移速修正为 {BuildCurrentValue(stats, StatType.EnemySpeedPercent)}。",
                 _ => StatNameMapper.GetName(statType)
             };
         }

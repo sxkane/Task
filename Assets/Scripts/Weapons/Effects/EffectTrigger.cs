@@ -3,6 +3,7 @@ namespace Weapons.Effects
     public enum EffectTrigger
     {
         Manual = 0,
-        OnItemAdded = 1
+        OnItemAdded = 1,
+        OnItemRemoved = 2
     }
 }

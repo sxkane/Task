@@ -19,7 +19,7 @@ namespace Weapons
         public GameObject weaponPrefab;
 
         [Header("Set Tags")]
-        public List<WeaponTag> tags = new();
+        public List<WeaponSetBonusData> bonusData = new();
 
         [Header("Rarity Settings")]
         public List<WeaponStats> rarityStats;
@@ -170,9 +170,9 @@ namespace Weapons
             return false;
         }
 
-        public IReadOnlyList<WeaponTag> GetTags()
+        public IReadOnlyList<WeaponSetBonusData> GetSetBonusData()
         {
-            return tags;
+            return bonusData;
         }
 
         public IReadOnlyList<WeaponAbility> GetAbilities()

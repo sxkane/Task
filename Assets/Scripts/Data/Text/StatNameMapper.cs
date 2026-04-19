@@ -20,9 +20,14 @@ namespace Data.Text
                 StatType.AttackSpeed => "攻速",
                 StatType.CritChance => "暴击率",
                 StatType.Range => "范围",
+                StatType.Knockback => "击退",
                 StatType.Speed => "移速",
                 StatType.Luck => "幸运",
                 StatType.Harvesting => "收获",
+                StatType.XPGain => "经验获取",
+                StatType.ConsumableHealing => "消耗品回复",
+                StatType.EnemyHealthPercent => "敌人生命",
+                StatType.EnemySpeedPercent => "敌人移速",
                 _ => type.ToString()
             };
         }
@@ -36,6 +41,9 @@ namespace Data.Text
                 StatType.Speed => "移速%",
                 StatType.Dodge => "闪避%",
                 StatType.DamagePercent => "伤害%",
+                StatType.XPGain => "经验获取%",
+                StatType.EnemyHealthPercent => "敌人生命%",
+                StatType.EnemySpeedPercent => "敌人移速%",
                 _ => GetName(type)
             };
         }

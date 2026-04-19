@@ -32,6 +32,11 @@ namespace Player
                 { StatType.Speed, SpeedStat },
                 { StatType.Luck, LuckStat },
                 { StatType.Harvesting, HarvestingStat },
+                { StatType.XPGain, XPGainStat },
+                { StatType.ConsumableHealing, ConsumableHealingStat },
+                { StatType.EnemyHealthPercent, EnemyHealthPercentStat },
+                { StatType.EnemySpeedPercent, EnemySpeedPercentStat },
+                { StatType.Knockback, KnockbackStat },
             };
         }
         
@@ -107,8 +112,7 @@ namespace Player
 
         public float HpRegenPerSecond => HpRegen / 11.25f + 1f / 9f;
 
-        public float LifeStealChance =>
-            Mathf.Max(0, LifeStealStat.Value) / 100f;
+        public float LifeStealChance => StatValueUtility.GetPlayerChance(StatType.LifeSteal, Mathf.Max(0f, LifeStealStat.Value));
 
         public float DamageTakenMultiplier
         {
@@ -121,7 +125,7 @@ namespace Player
             }
         }
 
-        public float DodgeChance => DodgePercent / 100f;
+        public float DodgeChance => StatValueUtility.GetPlayerChance(StatType.Dodge, DodgeStat.Value);
 
         #endregion
 
@@ -163,6 +167,7 @@ namespace Player
         /// 增加范围
         /// </summary>
         public Stat RangeStat = new(0);
+        public Stat KnockbackStat = new(0);
 
         // ===== 数值 =====
 
@@ -174,12 +179,13 @@ namespace Player
         public int RangedDamage => Mathf.RoundToInt(RangedDamageStat.Value);
         public int ElementalDamage => Mathf.RoundToInt(ElementalDamageStat.Value);
         public int Range => Mathf.RoundToInt(RangeStat.Value);
+        public int Knockback => Mathf.RoundToInt(KnockbackStat.Value);
 
         // ===== 乘区 =====
 
-        public float DamageMultiplier => 1f + DamagePercent / 100f;
-        public float AttackSpeedMultiplier => 1f + AttackSpeedStat.Value / 100f;
-        public float CritChance => Mathf.Max(0, CritChanceStat.Value) / 100f;
+        public float DamageMultiplier => Mathf.Max(0f, StatValueUtility.GetPlayerMultiplier(StatType.DamagePercent, DamagePercentStat.Value));
+        public float AttackSpeedMultiplier => Mathf.Max(0.01f, StatValueUtility.GetPlayerMultiplier(StatType.AttackSpeed, AttackSpeedStat.Value));
+        public float CritChance => StatValueUtility.GetPlayerChance(StatType.CritChance, Mathf.Max(0f, CritChanceStat.Value));
 
         #endregion
 
@@ -190,17 +196,28 @@ namespace Player
         public Stat SpeedStat = new(0);
         public Stat LuckStat = new(0);
         public Stat HarvestingStat = new(0);
+        public Stat XPGainStat = new(0);
+        public Stat ConsumableHealingStat = new(0);
+        public Stat EnemyHealthPercentStat = new(0);
+        public Stat EnemySpeedPercentStat = new(0);
         public Stat MaxWeaponsStat = new(6);
 
         public int SpeedPercent => Mathf.RoundToInt(SpeedStat.Value);
         public int Luck => Mathf.RoundToInt(LuckStat.Value);
+        public int XPGainPercent => Mathf.RoundToInt(XPGainStat.Value);
+        public int ConsumableHealing => Mathf.RoundToInt(ConsumableHealingStat.Value);
+        public int EnemyHealthPercent => Mathf.RoundToInt(EnemyHealthPercentStat.Value);
+        public int EnemySpeedPercent => Mathf.RoundToInt(EnemySpeedPercentStat.Value);
         
         // 你在一波结束时获得+x材料和经验。获得材料和经验后，采集属性向上取整5%。（所以如果你有5个收割，它变成6个，每波结束时获得+2收割需要21个收割。）
         // 如果收获为负，你会在一波结束时失去-x材料和经验值。你不会因为这段经验值损失而失去等级。虽然你的收割能力是负的，但没有5%的利息。
         public int Harvesting => Mathf.RoundToInt(HarvestingStat.Value);
         public int MaxWeapons => Mathf.RoundToInt(MaxWeaponsStat.Value);
 
-        public float MoveSpeedMultiplier => 1f + SpeedPercent / 100f;
+        public float MoveSpeedMultiplier => Mathf.Max(0f, StatValueUtility.GetPlayerMultiplier(StatType.Speed, SpeedStat.Value));
+        public float XPGainMultiplier => Mathf.Max(0f, StatValueUtility.GetPlayerMultiplier(StatType.XPGain, XPGainStat.Value));
+        public float EnemyHealthMultiplier => Mathf.Max(0f, StatValueUtility.GetPlayerMultiplier(StatType.EnemyHealthPercent, EnemyHealthPercentStat.Value));
+        public float EnemySpeedMultiplier => Mathf.Max(0f, StatValueUtility.GetPlayerMultiplier(StatType.EnemySpeedPercent, EnemySpeedPercentStat.Value));
 
         #endregion
     }

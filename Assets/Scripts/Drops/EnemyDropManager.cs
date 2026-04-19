@@ -62,7 +62,7 @@ namespace Drops
                 return;
 
             var coinAmount = Mathf.RoundToInt(e.Target.Stats.CoinReward);
-            var expAmount = Mathf.RoundToInt(e.Target.Stats.ExpReward);
+            var expAmount = Mathf.RoundToInt(e.Target.Stats.ExpReward * player.Stats.XPGainMultiplier);
             if (coinAmount <= 0 && expAmount <= 0)
                 return;
 

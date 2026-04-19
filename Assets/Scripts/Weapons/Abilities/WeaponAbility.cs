@@ -26,7 +26,16 @@ namespace Weapons.Abilities
         {
         }
 
-        public virtual void OnKill(WeaponRuntimeContext context, EnemyController enemy)
+        public virtual int ModifyDamage(WeaponRuntimeContext context, EnemyController enemy, Vector2 hitPosition, int damage, bool isCritical)
+        {
+            return damage;
+        }
+
+        public virtual void OnHit(WeaponRuntimeContext context, EnemyController enemy, Vector2 hitPosition, int damage, bool isCritical)
+        {
+        }
+
+        public virtual void OnKill(WeaponRuntimeContext context, EnemyController enemy, bool isCritical)
         {
         }
 

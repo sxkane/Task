@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ef5d389d6df48769629b0bb20dc8ae2, type: 3}
+  m_Name: StationaryDodge20
+  m_EditorClassIdentifier: Assembly-CSharp::Items.Abilities.StationaryBonusItemAbility
+  displayName: 站定闪避
+  description: +20% 闪避（站定时）
+  stationaryBonuses:
+  - statType: 4
+    value: 20
+    modType: 0
+  movementThreshold: 0.01

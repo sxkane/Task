@@ -47,15 +47,15 @@ namespace Player
             return true;
         }
 
-        public void ResetRefreshCost()
+        public void ResetRefreshCost(int startingCost = 1)
         {
-            RefreshCost = 1;
+            RefreshCost = Mathf.Max(0, startingCost);
             OnRefreshCostChanged?.Invoke(RefreshCost);
         }
 
         public void IncreaseRefreshCost(int amount = 1)
         {
-            RefreshCost = Mathf.Max(0, RefreshCost + amount);
+            RefreshCost = Mathf.Max(0, RefreshCost + Mathf.Max(0, amount));
             OnRefreshCostChanged?.Invoke(RefreshCost);
         }
         

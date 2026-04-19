@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f72c7f0c3dfefc6498ba95170ab9f3ef, type: 3}
+  m_Name: Explosion
+  m_EditorClassIdentifier: Assembly-CSharp::Weapons.WeaponSetBonusData
+  setId: 5
+  displayName: "\u7206\u70B8"
+  weaponTag: 0
+  tiers:
+  - requiredCount: 2
+    playerModifiers: []
+    weaponModifiers:
+    - statType: 9
+      value: 5
+      modType: 0
+  - requiredCount: 3
+    playerModifiers: []
+    weaponModifiers:
+    - statType: 9
+      value: 10
+      modType: 0
+  - requiredCount: 4
+    playerModifiers: []
+    weaponModifiers:
+    - statType: 9
+      value: 15
+      modType: 0
+  - requiredCount: 5
+    playerModifiers: []
+    weaponModifiers:
+    - statType: 9
+      value: 20
+      modType: 0
+  - requiredCount: 6
+    playerModifiers: []
+    weaponModifiers:
+    - statType: 9
+      value: 25
+      modType: 0

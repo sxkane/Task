@@ -1,4 +1,6 @@
+using Audio;
 using ObjectPool;
+using GameAudio;
 using UnityEngine;
 using Weapons.Core;
 using Weapons.Modifiers;
@@ -28,6 +30,7 @@ namespace Weapons.Arcane
                 ? ((Vector2)(enemyTransform.position - transform.position)).normalized
                 : Player.AimDirection;
             FaceDirection(direction);
+            GlobalSfxPlayer.Instance.PlayWeaponAttack();
             var runtimeProjectileSpeed = RuntimeStats != null ? RuntimeStats.GetStat(WeaponStatType.ProjectileSpeed).Value : 0f;
 
             projectileObject.GetComponent<ApprenticeWandProjectile>()

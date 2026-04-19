@@ -135,13 +135,13 @@ namespace Enemy
 
             var willBeKilled = Stats.CurrentHP - e.Damage <= 0f;
             Stats.TakeDamage(e.Damage);
-            EventBus.Publish(new OnEnemyDamagedEvent(this, Mathf.RoundToInt(e.Damage), !Stats.IsAlive, e.IsCritical));
+            EventBus.Publish(new OnEnemyDamagedEvent(this, Mathf.RoundToInt(e.Damage), !Stats.IsAlive, e.IsCritical, e.SourceWeapon));
 
             if (!willBeKilled && e.KnockbackForce > 0f)
                 Motor.ApplyKnockback(e.KnockbackDirection, e.KnockbackForce, Stats.KnockbackResistance);
 
             if (!Stats.IsAlive)
-                BeginDeath();
+                BeginDeath(e.SourceWeapon);
         }
 
         public void TakeDamage(float damage)
@@ -172,7 +172,7 @@ namespace Enemy
             Buffs?.Clear();
         }
 
-        private void BeginDeath()
+        private void BeginDeath(Weapons.Weapon sourceWeapon = null)
         {
             if (_deathHandled)
                 return;
@@ -180,7 +180,7 @@ namespace Enemy
             _deathHandled = true;
             _deathAnimationFinished = false;
             _enemyManager?.Unregister(this);
-            EventBus.Publish(new OnEnemyDiedEvent(this));
+            EventBus.Publish(new OnEnemyDiedEvent(this, sourceWeapon));
             ChangeState(EnemyStateEnum.Dying);
         }
 

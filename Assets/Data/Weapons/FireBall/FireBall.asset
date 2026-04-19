@@ -19,6 +19,9 @@ MonoBehaviour:
   icon: {fileID: 6958571527567373106, guid: 2ed17e0bbc6abb240a6bff94db56a53c, type: 3}
   weaponPrefab: {fileID: 499603121353363577, guid: 570d6270e85e6f242bca83422573b482, type: 3}
   tags: 
+  bonusData:
+  - {fileID: 11400000, guid: 84d812e217a384943a60888d7e56e2d8, type: 2}
+  - {fileID: 11400000, guid: b92ccb9eee739fc49955712d9497c24b, type: 2}
   rarityStats:
   - rarity: 1
     damage:
@@ -31,7 +34,6 @@ MonoBehaviour:
     range: 400
     knockback: 0
     price: 36
-    effects: []
   - rarity: 2
     damage:
     - damage: 10
@@ -43,7 +45,6 @@ MonoBehaviour:
     range: 450
     knockback: 0
     price: 66
-    effects: []
   - rarity: 3
     damage:
     - damage: 20
@@ -55,72 +56,6 @@ MonoBehaviour:
     range: 500
     knockback: 0
     price: 140
-    effects: []
   abilities:
   - {fileID: 11400000, guid: 97f4f52d46814d79875ff2cf3a5487e0, type: 2}
   - {fileID: 11400000, guid: e54d8c0f2dd14b9382d70d15c86b76d8, type: 2}
-  abilityEntries:
-  - ability: {fileID: 11400000, guid: 97f4f52d46814d79875ff2cf3a5487e0, type: 2}
-    rarityConfigs:
-    - rarity: 1
-      projectileSpeed: 18
-      pierceCount: 0
-      pierceDamageMultiplier: 1
-      bounceCount: 0
-      explosionRadius: 0
-      explosionDamage: 0
-      burnTickDamage: 0
-      burnTickCount: 0
-      burnSpreadCount: 0
-    - rarity: 2
-      projectileSpeed: 18
-      pierceCount: 0
-      pierceDamageMultiplier: 1
-      bounceCount: 0
-      explosionRadius: 0
-      explosionDamage: 0
-      burnTickDamage: 0
-      burnTickCount: 0
-      burnSpreadCount: 0
-    - rarity: 3
-      projectileSpeed: 18
-      pierceCount: 0
-      pierceDamageMultiplier: 1
-      bounceCount: 0
-      explosionRadius: 0
-      explosionDamage: 0
-      burnTickDamage: 0
-      burnTickCount: 0
-      burnSpreadCount: 0
-  - ability: {fileID: 11400000, guid: e54d8c0f2dd14b9382d70d15c86b76d8, type: 2}
-    rarityConfigs:
-    - rarity: 1
-      projectileSpeed: 0
-      pierceCount: 0
-      pierceDamageMultiplier: 1
-      bounceCount: 0
-      explosionRadius: 1.8
-      explosionDamage: 8
-      burnTickDamage: 5
-      burnTickCount: 3
-      burnSpreadCount: 0
-    - rarity: 2
-      projectileSpeed: 0
-      pierceCount: 0
-      pierceDamageMultiplier: 1
-      bounceCount: 0
-      explosionRadius: 1.8
-      explosionDamage: 8
-      burnTickDamage: 6
-      burnTickCount: 4
-      burnSpreadCount: 0
-    - rarity: 3
-      projectileSpeed: 0
-      pierceCount: 0
-      pierceDamageMultiplier: 1
-      bounceCount: 0
-      explosionRadius: 1.8
-      explosionDamage: 8
-      burnTickDamage: 8
-      burnTickCount: 5
-      burnSpreadCount: 0

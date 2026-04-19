@@ -66,7 +66,11 @@ namespace Player
             {
                 var modifier = passiveData.Modifiers[i];
                 var stat = Player.Stats.GetStat(modifier.statType);
-                stat.AddModifier(new Modifier(modifier.value, modifier.modifierType, passiveData));
+                stat.AddModifier(StatValueUtility.CreatePlayerModifier(
+                    modifier.statType,
+                    modifier.value,
+                    modifier.modifierType,
+                    passiveData));
             }
         }
     }

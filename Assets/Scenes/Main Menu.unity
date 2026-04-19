@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 14166774}
   - component: {fileID: 14166775}
+  - component: {fileID: 14166776}
   m_Layer: 0
   m_Name: GameRoot
   m_TagString: Untagged
@@ -165,6 +166,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Core.GameRoot
   transition: {fileID: 1154037799}
+--- !u!114 &14166776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 14166773}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec951a872c404fd1b2d752cd6f5d56d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameAudio.GlobalSfxPlayer
+  database: {fileID: 11400000, guid: 6b747161983c479c9543b5dfb04f05d3, type: 2}
 --- !u!1 &214657276
 GameObject:
   m_ObjectHideFlags: 0

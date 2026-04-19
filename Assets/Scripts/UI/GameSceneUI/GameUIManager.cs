@@ -2,6 +2,7 @@ using Core;
 using GameFlow;
 using Player;
 using UI.GameSceneUI.Reward;
+using UI.WeaponDisplay;
 using UnityEngine;
 
 namespace UI.GameSceneUI
@@ -60,7 +61,7 @@ namespace UI.GameSceneUI
             pausePanelView?.Configure(gameController, gameController != null ? gameController.Root : null);
             upgradePanelView?.Configure(gameController);
             shopPanelView?.Configure(gameController);
-            resultPanelView?.Configure(gameController != null ? gameController.Root : null);
+            resultPanelView?.Configure(gameController, gameController != null ? gameController.Root : null);
         }
 
         public void InitializeRun(PlayerManager playerManager)
@@ -113,6 +114,7 @@ namespace UI.GameSceneUI
                     PlayUI(hud);
                     break;
                 case GamePhaseType.GameOver:
+                    resultPanelView?.RefreshResult();
                     PlayUI(resultPanel);
                     break;
                 case GamePhaseType.Pause:

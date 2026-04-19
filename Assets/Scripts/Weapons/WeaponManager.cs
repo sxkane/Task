@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Core;
 using Enemy;
+using Events;
+using Events.WeaponEvents;
 using Player;
 using Stats;
 using UnityEngine;
@@ -30,8 +32,8 @@ namespace Weapons
         private Transform _projectileRoot;
         private int _maxWeaponCount;
 
-        private readonly List<Weapon> _weapons = new();
-        private readonly Dictionary<WeaponTag, int> _tagCounts = new();
+        private List<Weapon> _weapons = new();
+        private readonly Dictionary<WeaponSetBonusData, int> _setBonusCounts = new();
         private readonly HashSet<WeaponSetBonusData> _activeSetBonuses = new();
 
         public event Action OnLoadoutChanged;
@@ -53,7 +55,7 @@ namespace Weapons
                 if (weapon == null)
                     continue;
 
-                weapon.transform.position = playerPos + (Vector3)weapon.Offset;
+                weapon.transform.position = playerPos + (Vector3)(weapon.Offset + weapon.RuntimeOffset);
             }
         }
 
@@ -101,6 +103,7 @@ namespace Weapons
             _projectileRoot = null;
             _maxWeaponCount = 0;
             RebuildTagCounts();
+            EventBus.Publish(new OnWeaponChanged(_setBonusCounts, _weapons));
             OnLoadoutChanged?.Invoke();
         }
 
@@ -114,6 +117,31 @@ namespace Weapons
         {
             foreach (var weapon in _weapons)
                 weapon.EndPhase();
+        }
+
+        private bool TryUpgradeWeapon(WeaponEntry weaponEntry, int currentSlot)
+        {
+            if (weaponEntry == null || !weaponEntry.IsValid() || _player == null)
+                return false;
+
+            for (int i = _weapons.Count - 1; i >= 0; i--)
+            {
+                if (i == currentSlot || _weapons[i] == null || _weapons[i].Entry == null)
+                    continue;
+
+                var candidate = _weapons[i].Entry;
+                if (candidate.GetDataId() == weaponEntry.GetDataId() && candidate.GetRarity() == weaponEntry.GetRarity())
+                {
+                    UpgradeWeapon(_weapons[currentSlot]);
+                    var duplicate = _weapons[i];
+                    _weapons.RemoveAt(i);
+                    if (duplicate != null)
+                        Destroy(duplicate.gameObject);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public bool TryAddWeapon(WeaponEntry weaponEntry)
@@ -165,6 +193,7 @@ namespace Weapons
 
             ArrangeWeapons();
             RebuildTagCounts();
+            EventBus.Publish(new OnWeaponChanged(_setBonusCounts, _weapons));
             OnLoadoutChanged?.Invoke();
         }
 
@@ -173,7 +202,69 @@ namespace Weapons
             weapon.Upgrade();
             ArrangeWeapons();
             RebuildTagCounts();
+            EventBus.Publish(new OnWeaponChanged(_setBonusCounts, _weapons));
             OnLoadoutChanged?.Invoke();
+        }
+
+        public bool TryUpgradeWeapon(Weapon weapon)
+        {
+            if (weapon == null)
+                return false;
+
+            var currentSlot = _weapons.IndexOf(weapon);
+            if (currentSlot < 0 || !weapon.CanUpgrade())
+                return false;
+
+            var upgraded = TryUpgradeWeapon(weapon.Entry, currentSlot);
+            if (!upgraded)
+                return false;
+
+            ArrangeWeapons();
+            RebuildTagCounts();
+            EventBus.Publish(new OnWeaponChanged(_setBonusCounts, _weapons));
+            OnLoadoutChanged?.Invoke();
+            return true;
+        }
+
+        public bool CanUpgradeWeapon(Weapon weapon)
+        {
+            if (weapon == null)
+                return false;
+
+            var currentSlot = _weapons.IndexOf(weapon);
+            if (currentSlot < 0 || !weapon.CanUpgrade() || weapon.Entry == null)
+                return false;
+
+            for (var i = 0; i < _weapons.Count; i++)
+            {
+                if (i == currentSlot || _weapons[i] == null || _weapons[i].Entry == null)
+                    continue;
+
+                var candidate = _weapons[i].Entry;
+                if (candidate.GetDataId() == weapon.Entry.GetDataId() && candidate.GetRarity() == weapon.Entry.GetRarity())
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool TrySellWeapon(Weapon weapon, out int refund)
+        {
+            refund = 0;
+            if (weapon == null || !_weapons.Contains(weapon))
+                return false;
+
+            refund = weapon.Entry != null ? weapon.Entry.GetRecyclePrice() : 0;
+
+            _weapons.Remove(weapon);
+            if (weapon != null)
+                Destroy(weapon.gameObject);
+
+            ArrangeWeapons();
+            RebuildTagCounts();
+            EventBus.Publish(new OnWeaponChanged(_setBonusCounts, _weapons));
+            OnLoadoutChanged?.Invoke();
+            return true;
         }
 
         private void ArrangeWeapons()
@@ -189,36 +280,31 @@ namespace Weapons
 
         #region Weapon Tag
 
-        public IReadOnlyDictionary<WeaponTag, int> GetTagCounts()
+        public int GetSetTier(WeaponSetBonusData setBonusData)
         {
-            return _tagCounts;
-        }
-
-        public int GetSetTier(WeaponTag weaponTag)
-        {
-            return _tagCounts.TryGetValue(weaponTag, out var count)
+            return _setBonusCounts.TryGetValue(setBonusData, out var count)
                 ? Mathf.Clamp(count, 0, 6)
                 : 0;
         }
 
         private void RebuildTagCounts()
         {
-            _tagCounts.Clear();
+            _setBonusCounts.Clear();
 
             foreach (var weapon in _weapons)
             {
-                var tags = weapon?.Entry?.weaponData?.GetTags();
+                var tags = weapon?.Entry?.weaponData?.bonusData;
                 if (tags == null)
                     continue;
 
                 for (var i = 0; i < tags.Count; i++)
                 {
                     var weaponTag = tags[i];
-                    if (weaponTag == WeaponTag.None)
+                    if (weaponTag == null)
                         continue;
 
-                    _tagCounts.TryGetValue(weaponTag, out var value);
-                    _tagCounts[weaponTag] = value + 1;
+                    _setBonusCounts.TryGetValue(weaponTag, out var value);
+                    _setBonusCounts[weaponTag] = value + 1;
                 }
             }
 
@@ -241,7 +327,7 @@ namespace Weapons
                 if (setBonus == null || !setBonus.IsValid())
                     continue;
 
-                var count = GetSetTier(setBonus.WeaponTag);
+                var count = GetSetTier(setBonus);
                 var tier = setBonus.ResolveActiveTier(count);
                 if (tier == null)
                     continue;
@@ -252,7 +338,11 @@ namespace Weapons
                     {
                         var mod = tier.playerModifiers[j];
                         var stat = _player.Stats.GetStat(mod.statType);
-                        stat.AddModifier(new Modifier(mod.value, mod.modType, setBonus));
+                        stat.AddModifier(StatValueUtility.CreatePlayerModifier(
+                            mod.statType,
+                            mod.value,
+                            mod.modType,
+                            setBonus));
                     }
                 }
 
@@ -264,15 +354,19 @@ namespace Weapons
                         if (weapon == null || weapon.Entry?.weaponData == null || weapon.RuntimeStats == null)
                             continue;
 
-                        var tags = weapon.Entry.weaponData.GetTags();
-                        if (tags == null || !HasTag(tags, setBonus.WeaponTag))
+                        var allBonusData = weapon.Entry.weaponData.GetSetBonusData();
+                        if (allBonusData == null || !HasTag(allBonusData, setBonus))
                             continue;
 
                         for (var modifierIndex = 0; modifierIndex < tier.weaponModifiers.Count; modifierIndex++)
                         {
                             var modifier = tier.weaponModifiers[modifierIndex];
                             weapon.RuntimeStats.GetStat(modifier.statType)
-                                .AddModifier(new Modifier(modifier.value, modifier.modType, setBonus));
+                                .AddModifier(StatValueUtility.CreateWeaponModifier(
+                                    modifier.statType,
+                                    modifier.value,
+                                    modifier.modType,
+                                    setBonus));
                         }
                     }
                 }
@@ -291,9 +385,8 @@ namespace Weapons
                 if (setBonus == null)
                     continue;
 
-                for (var statIndex = 0; statIndex <= (int)StatType.Harvesting; statIndex++)
+                foreach (StatType statType in Enum.GetValues(typeof(StatType)))
                 {
-                    var statType = (StatType)statIndex;
                     _player.Stats.GetStat(statType).RemoveModifiersFromSource(setBonus);
                 }
 
@@ -310,14 +403,14 @@ namespace Weapons
             _activeSetBonuses.Clear();
         }
 
-        private static bool HasTag(IReadOnlyList<WeaponTag> tags, WeaponTag weaponTag)
+        private static bool HasTag(IReadOnlyList<WeaponSetBonusData> weaponSetBonusData, WeaponSetBonusData bonusData)
         {
-            if (tags == null)
+            if (weaponSetBonusData == null)
                 return false;
 
-            for (var i = 0; i < tags.Count; i++)
+            for (var i = 0; i < weaponSetBonusData.Count; i++)
             {
-                if (tags[i] == weaponTag)
+                if (weaponSetBonusData[i] == bonusData)
                     return true;
             }
 

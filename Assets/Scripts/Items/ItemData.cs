@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Data;
+using Items.Abilities;
 using Stats;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Weapons;
-using Weapons.Effects;
 
 namespace Items
 {
@@ -26,7 +27,8 @@ namespace Items
 
         [Header("Effects")]
         public List<ItemModify> modifies;
-        public List<Effect> effects;
+        [FormerlySerializedAs("effects")]
+        public List<ItemAbility> abilities;
 
         public override int DataId => itemID;
         public override string DisplayName => itemName;
@@ -70,6 +72,11 @@ namespace Items
         public Rarity GetRarity()
         {
             return rarity;
+        }
+
+        public int GetRecyclePrice()
+        {
+            return Mathf.Max(0, Mathf.FloorToInt(price * 0.25f));
         }
     }
 

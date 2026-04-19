@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Stats;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -33,25 +34,24 @@ namespace Weapons
             [FormerlySerializedAs("modifiers")]
             public List<SetStatModifier> playerModifiers = new();
             public List<SetWeaponModifier> weaponModifiers = new();
+
+            public int RequiredCount => Mathf.Clamp(requiredCount, 2, 6);
         }
 
         [Header("Identity")]
         [SerializeField] private string setId;
         [SerializeField] private string displayName;
 
-        [Header("Tag Match")]
-        [SerializeField] private WeaponTag weaponTag = WeaponTag.None;
-
         [Header("Tier Rules")]
         [SerializeField] private List<SetTier> tiers = new();
 
         public string SetId => string.IsNullOrWhiteSpace(setId) ? name : setId;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName;
-        public WeaponTag WeaponTag => weaponTag;
-
+        public IReadOnlyList<SetTier> Tiers => tiers;
+        
         public bool IsValid()
         {
-            return weaponTag != WeaponTag.None && tiers != null && tiers.Count > 0;
+            return tiers != null && tiers.Count > 0;
         }
 
         public SetTier ResolveActiveTier(int tagCount)
@@ -65,13 +65,17 @@ namespace Weapons
             for (int i = 0; i < tiers.Count; i++)
             {
                 var tier = tiers[i];
-                if (tier == null || tier.requiredCount > tagCount)
+                if (tier == null)
                     continue;
 
-                if (tier.requiredCount > bestRequired)
+                var requiredCount = tier.RequiredCount;
+                if (requiredCount > tagCount)
+                    continue;
+
+                if (requiredCount > bestRequired)
                 {
                     best = tier;
-                    bestRequired = tier.requiredCount;
+                    bestRequired = requiredCount;
                 }
             }
 

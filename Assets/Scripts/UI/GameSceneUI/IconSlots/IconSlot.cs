@@ -1,17 +1,18 @@
-﻿using UnityEngine;
+using System;
+using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Weapons;
 
 namespace UI.GameSceneUI.IconSlots
 {
-    public class IconSlot : MonoBehaviour
+    public class IconSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
         private static readonly int TopColor = Shader.PropertyToID("_TopColor");
         private static readonly int BottomColor = Shader.PropertyToID("_BottomColor");
 
         [Header("Core")]
         [SerializeField] private Image icon;
-
         [SerializeField] private Image rarityBackground;
         [SerializeField] private Image glow;
 
@@ -19,6 +20,10 @@ namespace UI.GameSceneUI.IconSlots
         [SerializeField] private RarityVisualDatabase rarityVisuals;
 
         private Material _bgMaterial;
+
+        public Action<PointerEventData> OnEnter;
+        public Action<PointerEventData> OnExit;
+        public Action<PointerEventData> OnClick;
 
         private void Awake()
         {
@@ -44,7 +49,6 @@ namespace UI.GameSceneUI.IconSlots
         public void ApplyRarity(Rarity rarity)
         {
             var config = rarityVisuals.GetRarityVisual(rarity);
-
             if (config == null)
                 return;
 
@@ -53,7 +57,7 @@ namespace UI.GameSceneUI.IconSlots
                 _bgMaterial.SetColor(TopColor, config.topColor);
                 _bgMaterial.SetColor(BottomColor, config.bottomColor);
             }
-            else
+            else if (rarityBackground != null)
             {
                 rarityBackground.color = config.topColor;
             }
@@ -61,11 +65,8 @@ namespace UI.GameSceneUI.IconSlots
             if (glow != null)
             {
                 glow.gameObject.SetActive(config.useGlow);
-
                 if (config.useGlow)
-                {
                     glow.color = config.glowColor * config.glowIntensity;
-                }
             }
         }
 
@@ -76,6 +77,21 @@ namespace UI.GameSceneUI.IconSlots
 
             if (glow != null)
                 glow.gameObject.SetActive(false);
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            OnEnter?.Invoke(eventData);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            OnExit?.Invoke(eventData);
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            OnClick?.Invoke(eventData);
         }
     }
 }

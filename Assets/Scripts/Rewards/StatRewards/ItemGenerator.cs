@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Data;
+using Items;
 using Rewards.Shops;
 using Stats;
 using UnityEngine;
@@ -11,13 +12,12 @@ namespace Rewards.StatRewards
 {
     public static class ItemGenerator
     {
-        // 顺序：Common(白)、Rare(蓝)、Epic(紫)、Legendary(红)
-        private static readonly float[] MaxRarityRate = { 1.0f, 0.6f, 0.25f, 0.08f };    // 概率上限
-        private static readonly float[] BaseRarityRate = { 1.0f, 0.0f, 0.0f, 0.0f };     // 基础概率
-        private static readonly float[] AddRarityRate = { 0.0f, 0.06f, 0.02f, 0.0023f }; // 每波增加的概率
-        private static readonly int[] MinWave = { 1, 2, 4, 8 };                          // 首次出现的波数
+        private static readonly float[] MaxRarityRate = { 1.0f, 0.6f, 0.25f, 0.08f };
+        private static readonly float[] BaseRarityRate = { 1.0f, 0.0f, 0.0f, 0.0f };
+        private static readonly float[] AddRarityRate = { 0.0f, 0.06f, 0.02f, 0.0023f };
+        private static readonly int[] MinWave = { 1, 2, 4, 8 };
 
-        private static readonly Dictionary<StatType, float[]> StatValues = new Dictionary<StatType, float[]>
+        private static readonly Dictionary<StatType, float[]> StatValues = new()
         {
             { StatType.MaxHP, new[] { 3f, 6f, 9f, 12f } },
             { StatType.HPRegen, new[] { 2f, 3f, 4f, 5f } },
@@ -35,18 +35,12 @@ namespace Rewards.StatRewards
             { StatType.Luck, new[] { 5f, 10f, 15f, 20f } },
             { StatType.Harvesting, new[] { 5f, 8f, 10f, 12f } }
         };
-        
-        /// <summary>
-        /// 根据当前波数和幸运值，随机生成对应的稀有度
-        /// </summary>
-        /// <param name="currentWave">当前波数（从1开始）</param>
-        /// <param name="luck">幸运值（百分比，比如50代表50%幸运）</param>
-        /// <returns>随机出的稀有度</returns>
+
         public static Rarity GetRarity(int currentWave, int luck)
         {
             float[] chance = new float[4];
             float luckMultiplier = 1.0f + (luck / 100.0f);
-            
+
             for (int i = 0; i < chance.Length; i++)
             {
                 if (currentWave < MinWave[i])
@@ -55,44 +49,57 @@ namespace Rewards.StatRewards
                 }
                 else
                 {
-                    // (每波增加量 × (当前波数 - 首次波数 - 1) + 基础概率) × 幸运倍率
                     chance[i] = (AddRarityRate[i] * (currentWave - MinWave[i] - 1) + BaseRarityRate[i]) * luckMultiplier;
                 }
+
                 chance[i] = Mathf.Clamp01(chance[i]);
                 chance[i] = Mathf.Min(chance[i], MaxRarityRate[i]);
             }
-            
+
             float remainingChance = 1.0f;
             for (int i = chance.Length - 1; i >= 0; i--)
             {
                 chance[i] = Mathf.Min(chance[i], remainingChance);
                 remainingChance -= chance[i];
             }
-            
+
             float randomValue = Random.value;
             float cumulativeChance = 0f;
             for (int i = chance.Length - 1; i >= 0; i--)
             {
                 cumulativeChance += chance[i];
                 if (randomValue <= cumulativeChance)
-                {
                     return (Rarity)i;
-                }
             }
-            
+
             return Rarity.Common;
         }
 
         public static StatReward GetStatReward(int currentWave, int luck)
         {
-            Rarity rarity = GetRarity(currentWave, luck);
-            
-            List<StatType> allStats = new List<StatType>(Enum.GetValues(typeof(StatType)) as StatType[] ?? Array.Empty<StatType>());
-            StatType selectedStat = allStats[Random.Range(0, allStats.Count)];
-            
-            int rarityLevel = (int)rarity;
-            float statValue = StatValues[selectedStat][rarityLevel];
-            
+            return GetStatReward(currentWave, luck, null);
+        }
+
+        public static StatReward GetStatReward(int currentWave, int luck, ISet<StatType> excludedTypes)
+        {
+            var rarity = GetRarity(currentWave, luck);
+            var availableStats = new List<StatType>();
+
+            foreach (var statType in StatValues.Keys)
+            {
+                if (excludedTypes != null && excludedTypes.Contains(statType))
+                    continue;
+
+                availableStats.Add(statType);
+            }
+
+            if (availableStats.Count == 0)
+                availableStats.AddRange(StatValues.Keys);
+
+            var selectedStat = availableStats[Random.Range(0, availableStats.Count)];
+            var rarityLevel = (int)rarity;
+            var statValue = StatValues[selectedStat][rarityLevel];
+
             return new StatReward
             {
                 type = selectedStat,
@@ -100,48 +107,116 @@ namespace Rewards.StatRewards
             };
         }
 
-        public static RewardOption GetUpgradeOption(int currentWave, int luck)
+        public static RewardOption GetUpgradeOption(int currentWave, int luck, StatIconDatabase statIconDatabase)
+        {
+            return GetUpgradeOption(currentWave, luck, statIconDatabase, null);
+        }
+
+        public static RewardOption GetUpgradeOption(int currentWave, int luck, StatIconDatabase statIconDatabase, ISet<StatType> excludedTypes)
         {
             var rarity = GetRarity(currentWave, luck);
-            var reward = GetStatReward(currentWave, luck);
+            var reward = GetStatReward(currentWave, luck, excludedTypes);
 
             return new RewardOption
             {
                 title = $"{rarity} Upgrade",
                 description = $"{reward.type} +{reward.value:0.#}",
+                icon = statIconDatabase != null ? statIconDatabase.GetIcon(reward.type) : null,
                 reward = reward
             };
         }
 
-        public static ShopItem GetWeaponShopOffer(int currentWave, int luck, GameDatabase data)
+        public static ShopItem GetShopOffer(int currentWave, int luck, GameDatabase data, ISet<string> excludedKeys = null)
         {
-            var weapons = data.weapons;
-            var rarity = GetRarity(currentWave, luck);
-
-            return new ShopItem()
-            {
-                type = ShopItemType.Weapon,
-                weaponEntry = BuildWeaponSelectionEntry(weapons, rarity)
-            };
-        }
-
-        private static WeaponEntry BuildWeaponSelectionEntry(List<WeaponData> weapons, Rarity rarity)
-        {
-            if (weapons == null || weapons.Count == 0)
+            if (data == null)
                 return null;
 
-            for (int i = 0; i < weapons.Count; i++)
+            var rarity = GetRarity(currentWave, luck);
+            var weaponCandidates = BuildWeaponCandidates(data.weapons, rarity, excludedKeys);
+            var itemCandidates = BuildItemCandidates(data.items, rarity, excludedKeys);
+
+            var canOfferWeapon = weaponCandidates.Count > 0;
+            var canOfferItem = itemCandidates.Count > 0;
+            if (!canOfferWeapon && !canOfferItem)
+                return null;
+
+            var offerItem = canOfferItem && (!canOfferWeapon || Random.value < 0.5f);
+            return offerItem
+                ? itemCandidates[Random.Range(0, itemCandidates.Count)]
+                : weaponCandidates[Random.Range(0, weaponCandidates.Count)];
+        }
+
+        public static string GetShopItemKey(ShopItem item)
+        {
+            if (item == null)
+                return string.Empty;
+
+            if (item.IsItem)
+                return $"item:{item.itemData?.GetDataId() ?? -1}";
+
+            return item.weaponEntry != null
+                ? $"weapon:{item.weaponEntry.GetDataId()}:{(int)item.weaponEntry.GetRarity()}"
+                : string.Empty;
+        }
+
+        private static List<ShopItem> BuildWeaponCandidates(List<WeaponData> weapons, Rarity rarity, ISet<string> excludedKeys)
+        {
+            var candidates = new List<ShopItem>();
+            if (weapons == null)
+                return candidates;
+
+            for (var i = 0; i < weapons.Count; i++)
             {
-                var candidate = weapons[Random.Range(0, weapons.Count)];
-                if (candidate == null)
+                var candidate = weapons[i];
+                if (candidate == null || !candidate.HasRarity(rarity))
                     continue;
 
                 var entry = candidate.CreateEntry(rarity);
-                if (entry != null && entry.IsValid())
-                    return entry;
+                if (entry == null || !entry.IsValid())
+                    continue;
+
+                var item = new ShopItem
+                {
+                    type = ShopItemType.Weapon,
+                    weaponEntry = entry
+                };
+
+                var key = GetShopItemKey(item);
+                if (excludedKeys != null && excludedKeys.Contains(key))
+                    continue;
+
+                candidates.Add(item);
             }
 
-            return null;
+            return candidates;
+        }
+
+        private static List<ShopItem> BuildItemCandidates(List<ItemData> items, Rarity rarity, ISet<string> excludedKeys)
+        {
+            var candidates = new List<ShopItem>();
+            if (items == null)
+                return candidates;
+
+            for (var i = 0; i < items.Count; i++)
+            {
+                var candidate = items[i];
+                if (candidate == null || candidate.GetRarity() != rarity)
+                    continue;
+
+                var item = new ShopItem
+                {
+                    type = ShopItemType.Item,
+                    itemData = candidate
+                };
+
+                var key = GetShopItemKey(item);
+                if (excludedKeys != null && excludedKeys.Contains(key))
+                    continue;
+
+                candidates.Add(item);
+            }
+
+            return candidates;
         }
     }
 }

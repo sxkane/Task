@@ -32,8 +32,8 @@ namespace Data
             return enemyDatabase != null && enemyDatabase.HasContent()
                    && waveDatabase != null && waveDatabase.HasContent();
         }
-
         public List<PlayerData> GetPlayerEntries()
+
         {
             return players ?? new List<PlayerData>();
         }

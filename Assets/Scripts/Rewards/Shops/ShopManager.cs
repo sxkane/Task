@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using Audio;
 using Data;
 using Events;
 using Events.ShopEvents;
+using GameAudio;
 using Player;
 using Rewards.StatRewards;
 using UnityEngine;
 using Weapons;
+using Weapons.Items;
 
 namespace Rewards.Shops
 {
@@ -14,20 +17,22 @@ namespace Rewards.Shops
     {
         [Header("Data")]
         [SerializeField] private GameDatabase gameDatabase;
-        [SerializeField] private int refreshCostStep = 1;
         [SerializeField] private int offerCount = 4;
+        [SerializeField] private float shopPriceMultiplier = 1f;
 
         private PlayerManager _playerManager;
         private WeaponManager _weaponManager;
+        private ItemManager _itemManager;
         private Waves.WaveManager _waveManager;
         private PlayerController _player;
         private readonly List<ShopItem> _shopItems = new();
         private Coroutine _publishCoroutine;
 
-        public void Configure(PlayerManager playerManager, WeaponManager weaponManager, Waves.WaveManager waveManager)
+        public void Configure(PlayerManager playerManager, WeaponManager weaponManager, ItemManager itemManager, Waves.WaveManager waveManager)
         {
             _playerManager = playerManager;
             _weaponManager = weaponManager;
+            _itemManager = itemManager;
             _waveManager = waveManager;
         }
 
@@ -57,7 +62,7 @@ namespace Rewards.Shops
             EventBus.Subscribe<OnShopRefreshEvent>(RefreshShop);
             EventBus.Subscribe<OnShopPurchaseRequestedEvent>(HandlePurchaseRequested);
 
-            _player?.RuntimeData?.ResetRefreshCost();
+            _player?.RuntimeData?.ResetRefreshCost(GetFirstRerollPrice());
 
             if (_publishCoroutine != null)
                 StopCoroutine(_publishCoroutine);
@@ -81,7 +86,7 @@ namespace Rewards.Shops
         private IEnumerator PublishShopItemsNextFrame()
         {
             yield return null;
-            RefreshOffers(replaceUnlockedOnly: false);
+            RefreshOffers(replaceUnlockedOnly: true);
             PublishOffers();
             _publishCoroutine = null;
         }
@@ -96,7 +101,7 @@ namespace Rewards.Shops
                 if (replaceUnlockedOnly && _shopItems[index] != null && _shopItems[index].isLocked)
                     continue;
 
-                _shopItems[index] = ItemGenerator.GetWeaponShopOffer(GetCurrentWaveIndex(), GetLuck(), gameDatabase);
+                RefreshOfferAt(index);
             }
         }
 
@@ -105,13 +110,26 @@ namespace Rewards.Shops
             EventBus.Publish(new OnShopItemsGeneratedEvent(new List<ShopItem>(_shopItems)));
         }
 
+        private void RefreshOfferAt(int index)
+        {
+            if (index < 0 || index >= offerCount)
+                return;
+
+            var excludedKeys = BuildExcludedOfferKeys(index);
+            var offer = ItemGenerator.GetShopOffer(GetCurrentWaveIndex(), GetLuck(), gameDatabase, excludedKeys);
+            if (offer != null)
+                offer.ConfigureShopData(index, GetCurrentWaveIndex(), shopPriceMultiplier);
+
+            _shopItems[index] = offer;
+        }
+
         private void LockShopItem(OnShopItemLockedEvent eventData)
         {
-            for (var index = 0; index < _shopItems.Count; index++)
-            {
-                if (_shopItems[index] == eventData.ShopItem)
-                    _shopItems[index].isLocked = !_shopItems[index].isLocked;
-            }
+            var slotIndex = ResolveSlotIndex(eventData.ShopItem);
+            if (slotIndex < 0 || slotIndex >= _shopItems.Count || _shopItems[slotIndex] == null)
+                return;
+
+            _shopItems[slotIndex].isLocked = !_shopItems[slotIndex].isLocked;
 
             PublishOffers();
         }
@@ -123,7 +141,8 @@ namespace Rewards.Shops
                 return;
 
             RefreshOffers(replaceUnlockedOnly: true);
-            runtimeData.IncreaseRefreshCost(refreshCostStep);
+            runtimeData.IncreaseRefreshCost(GetRerollIncrease());
+            GlobalSfxPlayer.Instance.PlayShopRefresh();
             PublishOffers();
         }
 
@@ -136,22 +155,67 @@ namespace Rewards.Shops
             if (!_player.RuntimeData.CanAfford(price))
                 return;
 
-            if (!_weaponManager.TryAddWeapon(eventData.ShopItem.GetWeaponEntry()))
+            var purchaseSucceeded = eventData.ShopItem.IsItem
+                ? _itemManager != null && _itemManager.TryAddItem(eventData.ShopItem.itemData)
+                : _weaponManager != null && _weaponManager.TryAddWeapon(eventData.ShopItem.GetWeaponEntry());
+
+            if (!purchaseSucceeded)
                 return;
 
             _player.RuntimeData.TrySpendCoins(price);
+            GlobalSfxPlayer.Instance.PlayShopPurchase();
 
-            var purchasedIndex = _shopItems.IndexOf(eventData.ShopItem);
+            var purchasedIndex = ResolveSlotIndex(eventData.ShopItem);
             if (purchasedIndex >= 0)
-                _shopItems[purchasedIndex] = null;
+                RefreshOfferAt(purchasedIndex);
 
-            RefreshOffers(replaceUnlockedOnly: false);
             PublishOffers();
+        }
+
+        private int ResolveSlotIndex(ShopItem shopItem)
+        {
+            if (shopItem == null)
+                return -1;
+
+            if (shopItem.slotIndex >= 0 && shopItem.slotIndex < _shopItems.Count && _shopItems[shopItem.slotIndex] != null)
+                return shopItem.slotIndex;
+
+            return _shopItems.IndexOf(shopItem);
         }
 
         private int GetCurrentWaveIndex()
         {
             return _waveManager != null ? _waveManager.CurrentWave + 1 : 1;
+        }
+
+        private HashSet<string> BuildExcludedOfferKeys(int exceptIndex)
+        {
+            var excludedKeys = new HashSet<string>();
+            for (var i = 0; i < _shopItems.Count; i++)
+            {
+                if (i == exceptIndex)
+                    continue;
+
+                var item = _shopItems[i];
+                if (item == null)
+                    continue;
+
+                var key = ItemGenerator.GetShopItemKey(item);
+                if (!string.IsNullOrWhiteSpace(key))
+                    excludedKeys.Add(key);
+            }
+
+            return excludedKeys;
+        }
+
+        private int GetRerollIncrease()
+        {
+            return Mathf.Max(1, Mathf.FloorToInt(GetCurrentWaveIndex() * 0.4f));
+        }
+
+        private int GetFirstRerollPrice()
+        {
+            return Mathf.FloorToInt(GetCurrentWaveIndex() * 0.75f) + GetRerollIncrease();
         }
 
         private int GetLuck()

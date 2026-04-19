@@ -19,5 +19,10 @@
         Speed,
         Luck,
         Harvesting,
+        XPGain,
+        ConsumableHealing,
+        EnemyHealthPercent,
+        EnemySpeedPercent,
+        Knockback,
     }
 }

@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45726a8ad22c449396d5a4a1e22c6bc5, type: 3}
+  m_Name: DoubleBow
+  m_EditorClassIdentifier: Assembly-CSharp::Weapons.WeaponData
+  weaponID: 6
+  weaponName: "\u53CC\u53D1\u5F13"
+  summary: 
+  description: 
+  icon: {fileID: 6234064350648681191, guid: 2ed17e0bbc6abb240a6bff94db56a53c, type: 3}
+  weaponPrefab: {fileID: 6420424645419629567, guid: 66170a575240b3f43b374f520646ac9f, type: 3}
+  bonusData:
+  - {fileID: 11400000, guid: bbbd0f6d601de014e9f4b67c683f310a, type: 2}
+  rarityStats:
+  - rarity: 0
+    damage:
+    - damage: 3
+      damageType: 1
+      percentage: 80
+    attackSpeed: 1.37
+    critChance: 3
+    critDamage: 2
+    range: 350
+    knockback: 8
+    price: 20
+  - rarity: 1
+    damage:
+    - damage: 6
+      damageType: 1
+      percentage: 85
+    attackSpeed: 1.28
+    critChance: 3
+    critDamage: 2
+    range: 350
+    knockback: 8
+    price: 39
+  - rarity: 2
+    damage:
+    - damage: 9
+      damageType: 1
+      percentage: 90
+    attackSpeed: 1.2
+    critChance: 3
+    critDamage: 2
+    range: 350
+    knockback: 8
+    price: 74
+  - rarity: 3
+    damage:
+    - damage: 12
+      damageType: 1
+      percentage: 100
+    attackSpeed: 1.2
+    critChance: 3
+    critDamage: 2
+    range: 350
+    knockback: 8
+    price: 149
+  abilities:
+  - {fileID: 11400000, guid: bbc2e257be3ec944eb26f515bbb4e9f3, type: 2}
+  - {fileID: 11400000, guid: 04758e2ba2c5fa44d89dda00f7a64069, type: 2}

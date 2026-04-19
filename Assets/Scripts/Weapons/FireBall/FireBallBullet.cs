@@ -87,8 +87,8 @@ namespace Weapons.FireBall
             if (!TryHitEnemy(collision, out var enemy))
                 return;
 
-            var isCritical = IsCriticalHit();
-            var damage = CalculateDamage();
+            var isCritical = RollCriticalHit();
+            var damage = CalculateDamage(isCritical);
             PublishDamage(enemy, damage, _direction, isCritical);
             _ownerWeapon?.NotifyProjectileHit(enemy, transform.position);
             ReturnToPool();

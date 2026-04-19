@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ad8e92bdc1e46f5850f59263da9c485, type: 3}
+  m_Name: BlueGloves
+  m_EditorClassIdentifier: Assembly-CSharp::Items.ItemData
+  itemID: 83
+  itemIcon: {fileID: -8295029410813222302, guid: 2ed17e0bbc6abb240a6bff94db56a53c, type: 3}
+  itemName: "\u84DD\u8272\u624B\u5957"
+  rarity: 2
+  price: 60
+  summary: 
+  description: 
+  modifies:
+  - statType: 9
+    value: 5
+    modType: 0
+  abilities:
+  - {fileID: 11400000, guid: 72334c8af4584a2aa66d61d7c1487a2e, type: 2}

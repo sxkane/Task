@@ -1,7 +1,9 @@
+using Audio;
 using ObjectPool;
 using Player;
 using UnityEngine;
 using UnityEngine.Serialization;
+using GameAudio;
 
 namespace Drops
 {
@@ -152,7 +154,14 @@ namespace Drops
             }
 
             _runtimeData.AddCoins(_coinAmount);
-            _runtimeData.AddExperience(_expAmount);
+            if (_coinAmount > 0)
+                GlobalSfxPlayer.Instance.PlayPickupCoin();
+            var expAmount = _player != null && _player.Stats != null
+                ? Mathf.RoundToInt(_expAmount * _player.Stats.XPGainMultiplier)
+                : _expAmount;
+            _runtimeData.AddExperience(expAmount);
+            if (expAmount > 0)
+                GlobalSfxPlayer.Instance.PlayPickupExp();
 
             PoolManager.Instance.Despawn(gameObject);
         }

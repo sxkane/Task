@@ -1,6 +1,7 @@
 using System;
 using Stats;
 using UnityEngine;
+using Core;
 
 namespace Enemy
 {
@@ -31,9 +32,12 @@ namespace Enemy
         public void Initialize(EnemyStatTemplate template, int currentWave)
         {
             var waveNumber = Mathf.Max(1, currentWave);
+            var playerStats = GameController.Instance?.PlayerManager?.Player?.Stats;
+            var enemyHealthMultiplier = playerStats != null ? playerStats.EnemyHealthMultiplier : 1f;
+            var enemySpeedMultiplier = playerStats != null ? playerStats.EnemySpeedMultiplier : 1f;
 
-            _maxHpStat.BaseValue = template.maxHP + (waveNumber - 1) * template.hpPerWave;
-            _moveSpeedStat.BaseValue = template.moveSpeed;
+            _maxHpStat.BaseValue = (template.maxHP + (waveNumber - 1) * template.hpPerWave) * enemyHealthMultiplier;
+            _moveSpeedStat.BaseValue = template.moveSpeed * enemySpeedMultiplier;
             _damageStat.BaseValue = template.damage + (waveNumber - 1) * template.damagePerWave;
             _attackIntervalStat.BaseValue = template.attackInterval;
             _knockbackResistanceStat.BaseValue = template.knockbackResistance;

@@ -41,11 +41,21 @@ MonoBehaviour:
       baseValue: 3
     RangeStat:
       baseValue: 0
+    KnockbackStat:
+      baseValue: 0
     SpeedStat:
       baseValue: 0
     LuckStat:
       baseValue: 0
     HarvestingStat:
+      baseValue: 0
+    XPGainStat:
+      baseValue: 0
+    ConsumableHealingStat:
+      baseValue: 0
+    EnemyHealthPercentStat:
+      baseValue: 0
+    EnemySpeedPercentStat:
       baseValue: 0
     MaxWeaponsStat:
       baseValue: 6
@@ -53,4 +63,6 @@ MonoBehaviour:
   passiveData: {fileID: 11400000, guid: a80a45fa4ba93a149946afd83652f1e7, type: 2}
   starterWeapons:
   - weaponData: {fileID: 11400000, guid: cf681188ae9fd6a408e548215c248a9b, type: 2}
+    rarity: 0
+  - weaponData: {fileID: 11400000, guid: a9b17b59358860d47ac80323a0293e32, type: 2}
     rarity: 0

@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: "\u5F13"
   weaponTag: 6
   tiers:
-  - requiredCount: 0
+  - requiredCount: 2
     modifiers:
     - statType: 11
       value: 10

@@ -27,6 +27,10 @@ namespace Weapons.Effects
             Apply(context);
         }
 
+        public virtual void Remove(EffectExecutionContext context)
+        {
+        }
+
         public bool CanExecute(EffectTrigger effectTrigger)
         {
             return trigger == EffectTrigger.Manual || trigger == effectTrigger;

@@ -111,9 +111,9 @@ namespace Weapons.Abilities
             var burnCount = config != null ? config.burnTickCount : burnTickCount;
 
             if (burnDamage > 0f && burnCount > 0)
-                return $"- 命中时爆炸，范围 {radius:0.#}，造成 {damageAmount:0.#} 伤害，并附加 {burnCount} 次燃烧";
+                return $"- 弹丸命中时爆炸，范围 {radius:0.#}，造成 {damageAmount:0.#} 伤害，并附加 {burnDamage:0.#}x{burnCount} 燃烧伤害";
 
-            return $"- 命中时爆炸，范围 {radius:0.#}，造成 {damageAmount:0.#} 伤害";
+            return $"- 弹丸命中时爆炸，范围 {radius:0.#}，造成 {damageAmount:0.#} 伤害";
         }
     }
 }

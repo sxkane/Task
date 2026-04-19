@@ -1,4 +1,6 @@
+using Audio;
 using ObjectPool;
+using GameAudio;
 using UnityEngine;
 using Weapons.Core;
 using Weapons.Modifiers;
@@ -21,6 +23,7 @@ namespace Weapons.FireBall
             }
 
             NotifyAbilitiesAttack();
+            GlobalSfxPlayer.Instance.PlayWeaponAttack();
 
             if (Abilities != null && Abilities.Count > 0)
                 return;

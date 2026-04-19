@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Enemy;
+using Events;
+using Events.EnemyEvents;
 using Player;
 using UnityEngine;
 using Weapons.Abilities;
@@ -19,6 +21,8 @@ namespace Weapons
         public EnemyManager EnemyManager { get; private set; }
         protected Transform ProjectileRoot { get; private set; }
         public Vector2 Offset { get; private set; } = Vector2.zero;
+        public Vector2 RuntimeOffset { get; private set; } = Vector2.zero;
+        protected bool IsWeaponActive => _isActive;
 
         private bool _isActive;
         private readonly List<WeaponAbility> _abilities = new();
@@ -26,7 +30,14 @@ namespace Weapons
         public void SetOffset(Vector2 offset)
         {
             Offset = offset;
-            transform.position = Player.transform.position + (Vector3)offset;
+            transform.position = Player.transform.position + (Vector3)(Offset + RuntimeOffset);
+        }
+
+        protected void SetRuntimeOffset(Vector2 runtimeOffset)
+        {
+            RuntimeOffset = runtimeOffset;
+            if (Player != null)
+                transform.position = Player.transform.position + (Vector3)(Offset + RuntimeOffset);
         }
 
         protected void FaceDirection(Vector2 direction)
@@ -76,11 +87,13 @@ namespace Weapons
         public virtual void ResetRun()
         {
             _isActive = false;
+            RuntimeOffset = Vector2.zero;
         }
 
         public virtual void CleanupRun()
         {
             _isActive = false;
+            RuntimeOffset = Vector2.zero;
         }
 
         public void BeginPhase()
@@ -144,6 +157,33 @@ namespace Weapons
             }
         }
 
+        protected int ModifyDamageWithAbilities(EnemyController enemy, Vector2 hitPosition, int damage, bool isCritical)
+        {
+            var modifiedDamage = damage;
+            for (var i = 0; i < _abilities.Count; i++)
+            {
+                var ability = _abilities[i];
+                if (ability == null)
+                    continue;
+
+                modifiedDamage = ability.ModifyDamage(RuntimeContext, enemy, hitPosition, modifiedDamage, isCritical);
+            }
+
+            return modifiedDamage;
+        }
+
+        protected void NotifyAbilitiesHit(EnemyController enemy, Vector2 hitPosition, int damage, bool isCritical)
+        {
+            for (var i = 0; i < _abilities.Count; i++)
+            {
+                var ability = _abilities[i];
+                if (ability == null)
+                    continue;
+
+                ability.OnHit(RuntimeContext, enemy, hitPosition, damage, isCritical);
+            }
+        }
+
         private void RebuildRuntime()
         {
             RuntimeStats ??= new WeaponRuntimeStats();
@@ -197,6 +237,31 @@ namespace Weapons
                     continue;
 
                 ability.OnEndPhase(RuntimeContext);
+            }
+        }
+
+        private void OnEnable()
+        {
+            EventBus.Subscribe<OnEnemyDamagedEvent>(HandleEnemyDamaged);
+        }
+
+        private void OnDisable()
+        {
+            EventBus.Unsubscribe<OnEnemyDamagedEvent>(HandleEnemyDamaged);
+        }
+
+        private void HandleEnemyDamaged(OnEnemyDamagedEvent eventData)
+        {
+            if (eventData == null || eventData.SourceWeapon != this || !eventData.WasKilled)
+                return;
+
+            for (var i = 0; i < _abilities.Count; i++)
+            {
+                var ability = _abilities[i];
+                if (ability == null)
+                    continue;
+
+                ability.OnKill(RuntimeContext, eventData.Target, eventData.IsCritical);
             }
         }
     }

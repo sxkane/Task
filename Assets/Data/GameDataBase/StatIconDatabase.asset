@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1c1e1f7c2bb4b19b8d2e5f44a0d3e71, type: 3}
+  m_Name: StatIconDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::Data.StatIconDatabase
+  statIcons:
+  - statType: 0
+    icon: {fileID: -2981079048138086973, guid: 85a91e33b0b2a8244b054bbf020f8515, type: 3}
+  - statType: 1
+    icon: {fileID: 8761960327969039593, guid: 9851cf7ab684fc94b80895430d8730ec, type: 3}
+  - statType: 2
+    icon: {fileID: -5509571117090517416, guid: 5eb011fa47398cd499ee852585a1717b, type: 3}
+  - statType: 3
+    icon: {fileID: 429254163283219758, guid: 1da1644367c3f35418b0b4677bf4f2b6, type: 3}
+  - statType: 4
+    icon: {fileID: -3919798453572320290, guid: 90a1e7e42fa3756499ff4f45059b4536, type: 3}
+  - statType: 5
+    icon: {fileID: -4480515698104360935, guid: fbe7cd9712f7d9d40b01b89a7055b19a, type: 3}
+  - statType: 6
+    icon: {fileID: 505682469174954189, guid: 0d93e13fde64f6144a0e2dab789393a0, type: 3}
+  - statType: 7
+    icon: {fileID: 8086731634470370224, guid: 8e387e40114f6bb409aa86dac8c61cd2, type: 3}
+  - statType: 8
+    icon: {fileID: -2343124228992399366, guid: 8f578bff538086f43bb8e8f65a145e42, type: 3}
+  - statType: 9
+    icon: {fileID: 5017067765615831729, guid: d51e73e6b9f53b44ab5c9d9d92b92f3c, type: 3}
+  - statType: 10
+    icon: {fileID: 1067997458530821493, guid: 73452f8940fab0744ada0e6f6bd6440b, type: 3}
+  - statType: 11
+    icon: {fileID: 7655256846822446536, guid: 68919a31a18e7f94393d675957832d1b, type: 3}
+  - statType: 12
+    icon: {fileID: -1034520808507508692, guid: f970074469e52e9408621a3e7d948315, type: 3}
+  - statType: 13
+    icon: {fileID: -222291494316157313, guid: 17ad8bb5b5550b9468a77c0da243c14d, type: 3}
+  - statType: 14
+    icon: {fileID: -8984764081736036093, guid: 577c5a584091d3a49894068c5356bc66, type: 3}

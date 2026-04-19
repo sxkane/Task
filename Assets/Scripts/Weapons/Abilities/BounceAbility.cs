@@ -1,5 +1,5 @@
-using UnityEngine;
 using Stats;
+using UnityEngine;
 using Weapons.Core;
 using Weapons.Modifiers;
 
@@ -25,7 +25,11 @@ namespace Weapons.Abilities
             var config = ResolveConfig(rarityConfigs, context.Weapon.Entry.rarity);
             var value = config != null ? config.bounceCount : bounceCount;
             context.RuntimeStats.GetStat(WeaponStatType.BounceCount)
-                .AddModifier(new Modifier(value, StatModType.Flat, this));
+                .AddModifier(StatValueUtility.CreateWeaponModifier(
+                    WeaponStatType.BounceCount,
+                    value,
+                    StatModType.Flat,
+                    this));
         }
 
         public override string BuildDescription(Rarity rarity)

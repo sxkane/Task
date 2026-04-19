@@ -50,7 +50,7 @@ namespace UI.GameSceneUI.Stats
                 return;
 
             attributeNameText.text = attributeName;
-            attributeValueText.text = StatTextBuilder.ColorizeValue(_stats.GetStatValue(statType));
+            attributeValueText.text = StatTextBuilder.BuildCurrentValue(_stats, statType);
             _statIntroductionText = StatTextBuilder.BuildTooltip(_stats, statType);
         }
 

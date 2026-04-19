@@ -35,9 +35,19 @@ namespace Weapons
             return weaponData != null ? weaponData.GetStats(rarity) : null;
         }
 
-        public int GetPrice()
+        public int GetBasePrice()
         {
             return GetStats()?.price ?? 0;
+        }
+
+        public int GetPrice()
+        {
+            return GetBasePrice();
+        }
+
+        public int GetRecyclePrice()
+        {
+            return Mathf.Max(0, Mathf.FloorToInt(GetBasePrice() * 0.25f));
         }
 
         public int GetDataId()

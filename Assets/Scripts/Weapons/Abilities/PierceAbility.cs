@@ -31,10 +31,13 @@ namespace Weapons.Abilities
                 : damageMultiplierAfterPierce;
 
             context.RuntimeStats.GetStat(WeaponStatType.PierceCount)
-                .AddModifier(new Modifier(configuredPierceCount, StatModType.Flat, this));
+                .AddModifier(StatValueUtility.CreateWeaponModifier(
+                    WeaponStatType.PierceCount,
+                    configuredPierceCount,
+                    StatModType.Flat,
+                    this));
 
-            context.RuntimeStats.GetStat(WeaponStatType.PierceDamageMultiplier)
-                .BaseValue = configuredDamageMultiplier;
+            context.RuntimeStats.GetStat(WeaponStatType.PierceDamageMultiplier).BaseValue = configuredDamageMultiplier;
         }
 
         public override string BuildDescription(Rarity rarity)

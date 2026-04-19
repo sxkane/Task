@@ -36,7 +36,7 @@ namespace Weapons
             Invoke(nameof(ReturnToPool), lifetime);
         }
 
-        protected int CalculateDamage()
+        protected int CalculateDamage(bool isCritical)
         {
             if (Player == null || Player.Stats == null || Stats == null)
                 return 0;
@@ -46,21 +46,26 @@ namespace Weapons
                 ? DamageCalculator.CalculateBaseDamage(playerStats, RuntimeStats)
                 : DamageCalculator.CalculateBaseDamage(playerStats, Stats);
 
-            var critChance = RuntimeStats != null ? RuntimeStats.GetStat(WeaponStatType.CritChance).Value / 100f : Stats.critChance / 100f;
-            var critDamage = RuntimeStats != null ? RuntimeStats.GetStat(WeaponStatType.CritDamage).Value : Stats.critDamage;
-            if (Random.value < playerStats.CritChance + critChance)
+            var critDamage = RuntimeStats != null
+                ? RuntimeStats.GetCritDamageMultiplier()
+                : Mathf.Max(0f, Stats.critDamage);
+            if (isCritical)
                 damage = Mathf.RoundToInt(damage * critDamage);
 
             return damage;
         }
 
-        protected bool IsCriticalHit()
+        protected bool RollCriticalHit()
         {
             if (Player == null || Player.Stats == null || Stats == null)
                 return false;
 
-            var critChance = RuntimeStats != null ? RuntimeStats.GetStat(WeaponStatType.CritChance).Value / 100f : Stats.critChance / 100f;
-            return Random.value < Player.Stats.CritChance + critChance;
+            var playerCritChance = Player.Stats.CritChance;
+            var weaponCritChance = RuntimeStats != null
+                ? RuntimeStats.GetCritChanceRatio()
+                : StatValueUtility.PercentPointsToChance(Stats.critChance);
+
+            return Random.value < Mathf.Clamp01(playerCritChance + weaponCritChance);
         }
 
         protected bool TryHitEnemy(Collider2D collision, out EnemyController enemy)
@@ -72,7 +77,8 @@ namespace Weapons
         protected void PublishDamage(EnemyController enemy, int damage, Vector2 knockbackDirection, bool isCritical = false)
         {
             var knockback = RuntimeStats != null ? RuntimeStats.GetKnockback() : Stats != null ? Stats.knockback : 0f;
-            EventBus.Publish(new OnEnemyDamageRequestedEvent(enemy, damage, knockbackDirection, knockback, isCritical));
+            knockback += Player != null && Player.Stats != null ? Player.Stats.Knockback : 0f;
+            EventBus.Publish(new OnEnemyDamageRequestedEvent(enemy, damage, knockbackDirection, knockback, isCritical, GetComponentInParent<Weapon>()));
             Player?.TryLifeStealOnHit();
         }
 

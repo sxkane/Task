@@ -16,6 +16,7 @@ namespace Rewards.Upgrades
     {
         [Header("Settings")]
         [SerializeField] private int optionCount = 4;
+        [SerializeField] private StatIconDatabase statIconDatabase;
 
         private PlayerManager _playerManager;
         private WaveManager _waveManager;
@@ -76,12 +77,20 @@ namespace Rewards.Upgrades
             }
 
             _currentOptions.Clear();
+            var selectedStatTypes = new HashSet<StatType>();
+
             for (var index = 0; index < optionCount; index++)
             {
-                var option = ItemGenerator.GetUpgradeOption(GetCurrentWaveIndex(), _player.Stats.Luck);
+                var option = ItemGenerator.GetUpgradeOption(
+                    GetCurrentWaveIndex(),
+                    _player.Stats.Luck,
+                    statIconDatabase,
+                    selectedStatTypes);
+
                 option.title = UpgradeTextBuilder.BuildTitle(option.reward);
                 option.description = UpgradeTextBuilder.BuildDescription(option.reward);
                 _currentOptions.Add(option);
+                selectedStatTypes.Add(option.reward.type);
             }
 
             EventBus.Publish(new OnUpgradeOptionsGeneratedEvent(
@@ -97,14 +106,14 @@ namespace Rewards.Upgrades
             ApplyReward(eventData.Option.reward);
             if (!_player.RuntimeData.TryConsumePendingUpgradeSelection())
                 return;
-            
+
             PublishNextOptions();
         }
 
         private void ApplyReward(StatReward reward)
         {
             var stat = _player.Stats.GetStat(reward.type);
-            stat.AddModifier(new Modifier(reward.value, StatModType.Flat, reward));
+            stat.AddModifier(StatValueUtility.CreatePlayerModifier(reward.type, reward.value, StatModType.Flat, reward));
         }
 
         private int GetCurrentWaveIndex()

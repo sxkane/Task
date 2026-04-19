@@ -8,6 +8,7 @@ using GameFlow;
 using Player;
 using TMPro;
 using UI.GameSceneUI.Stats;
+using UI.WeaponDisplay;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,6 +16,19 @@ namespace UI.GameSceneUI.Reward
 {
     public class ShopPanel : MonoBehaviour
     {
+        public static ShopPanel Instance;
+
+        private void Awake()
+        {
+            if (Instance != null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+        }
+        
         [Header("Slots")]
         [SerializeField] private List<RewardSlot> slots;
 
@@ -91,6 +105,8 @@ namespace UI.GameSceneUI.Reward
                 else if (slots[index] != null)
                     slots[index].gameObject.SetActive(false);
             }
+
+            RefreshPriceColors();
         }
 
         public void FreshItems()
@@ -130,6 +146,7 @@ namespace UI.GameSceneUI.Reward
         {
             RefreshCostText();
             RefreshCurrentCoins();
+            RefreshPriceColors();
         }
 
         private void RefreshCostText()
@@ -140,6 +157,10 @@ namespace UI.GameSceneUI.Reward
             freshCostText.text = _runtimeData == null
                 ? string.Empty
                 : UIValueBuilder.Price(_runtimeData.RefreshCost);
+
+            freshCostText.color = _runtimeData != null && _runtimeData.CanAfford(_runtimeData.RefreshCost)
+                ? StatTextBuilder.Positive
+                : StatTextBuilder.Negative;
         }
 
         private void RefreshCurrentCoins()
@@ -150,6 +171,20 @@ namespace UI.GameSceneUI.Reward
             coinText.text = _runtimeData == null
                 ? string.Empty
                 : UIValueBuilder.Coin(_runtimeData.Coins);
+        }
+
+        private void RefreshPriceColors()
+        {
+            for (var i = 0; i < slots.Count; i++)
+            {
+                var slot = slots[i];
+                if (slot == null || !slot.gameObject.activeSelf)
+                    continue;
+
+                var shopItem = slot.GetCurrentItem();
+                var canAfford = _runtimeData != null && shopItem != null && _runtimeData.CanAfford(shopItem.GetPrice());
+                slot.RefreshPriceState(canAfford);
+            }
         }
     }
 }
