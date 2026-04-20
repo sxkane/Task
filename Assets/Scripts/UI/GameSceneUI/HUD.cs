@@ -39,6 +39,7 @@ namespace UI.GameSceneUI
             EventBus.Subscribe<OnPlayerDamagedEvent>(OnPlayerDamaged);
             EventBus.Subscribe<OnPlayerHealthChangedEvent>(OnPlayerHealthChanged);
             BindRuntimeData();
+            RefreshView();
         }
 
         private void OnDisable()
@@ -73,6 +74,13 @@ namespace UI.GameSceneUI
             UnbindRuntimeData();
             _player = null;
             _runtimeData = null;
+            RefreshWaveText();
+        }
+
+        public void RefreshView()
+        {
+            RefreshHealth();
+            RefreshProgression();
             RefreshWaveText();
         }
 

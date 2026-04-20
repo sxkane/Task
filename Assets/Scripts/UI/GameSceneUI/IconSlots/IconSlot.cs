@@ -20,6 +20,7 @@ namespace UI.GameSceneUI.IconSlots
         [SerializeField] private RarityVisualDatabase rarityVisuals;
 
         private Material _bgMaterial;
+        private bool _useFlatBackgroundInMaskedView;
 
         public Action<PointerEventData> OnEnter;
         public Action<PointerEventData> OnExit;
@@ -27,6 +28,14 @@ namespace UI.GameSceneUI.IconSlots
 
         private void Awake()
         {
+            _useFlatBackgroundInMaskedView = GetComponentInParent<RectMask2D>() != null;
+
+            if (_useFlatBackgroundInMaskedView && rarityBackground != null)
+            {
+                rarityBackground.material = null;
+                return;
+            }
+
             if (rarityBackground != null && rarityBackground.material != null)
             {
                 _bgMaterial = Instantiate(rarityBackground.material);
